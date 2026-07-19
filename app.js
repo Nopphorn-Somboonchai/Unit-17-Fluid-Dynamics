@@ -58,6 +58,30 @@ class SeededRNG {
     }
 }
 
+function pureShuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function formatChoiceExplanation(template, shuffledChoices) {
+    if (!template || !template.choiceExplanations || !Array.isArray(shuffledChoices)) {
+        return '';
+    }
+    return shuffledChoices.map((c, i) => {
+        const origIdx = template.choices.indexOf(c);
+        if (origIdx !== -1 && template.choiceExplanations[origIdx]) {
+            const exp = template.choiceExplanations[origIdx];
+            const statusTag = exp.isCorrect ? 'ถูก' : 'ผิด';
+            return `- **ข้อ ${i + 1} ${statusTag}:** ${exp.text}`;
+        }
+        return '';
+    }).filter(Boolean).join('<br>');
+}
+
 // Function to generate a seeded random number
 function getSeededRandomBase(questionId, seed, min, max, step = 1) {
     const seedStr = `${questionId}_${seed}`;
@@ -1478,8 +1502,8 @@ function renderTensionLoop() {
     }
 
     if (Fs > 0 && !tParams.filmRuptured) {
-        ctx.strokeStyle = '#06b6d4';
-        ctx.fillStyle = '#06b6d4';
+        ctx.strokeStyle = '#e6915d';
+        ctx.fillStyle = '#e6915d';
         ctx.lineWidth = 2;
         const arFs = Math.min(60, 5 + Fs * 300);
         ctx.beginPath();
@@ -1628,102 +1652,89 @@ const QUESTION_TEMPLATES = [
             'แมลงสามารถเดินทรงตัวบนผิวน้ำได้เนื่องจากความหนาแน่นของตัวแมลงน้อยกว่าความหนาแน่นของน้ำ',
             'การเติมสบู่หรือสารลดแรงตึงผิวลงในน้ำช่วยเพิ่มค่าสัมประสิทธิ์ความตึงผิวของน้ำให้สูงขึ้น'
         ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ทิศของแรงตึงผิวแผ่ตามแนวขนานกับผิวน้ำและกระทำตั้งฉากกับขอบแกนวัตถุสัมผัส' },
+            { isCorrect: false, text: 'ความตึงผิวมีหน่วยเป็น นิวตันต่อเมตร (N/m)' },
+            { isCorrect: false, text: 'แมลงยืนบนผิวน้ำได้จากแรงดึงผิวพยุงขาแมลงไว้ ไม่ใช่เพราะตัวแมลงเบากว่าน้ำ' },
+            { isCorrect: false, text: 'สารลดแรงตึงผิว (เช่น สบู่) จะลดความตึงผิวเพื่อกระจายโมเลกุลน้ำ' }
+        ],
         text: () => `ข้อความใดต่อไปนี้ระบุคุณสมบัติเชิงฟิสิกส์เรื่องความตึงผิว (Surface Tension) ได้ถูกต้องที่สุด`,
         generate: (seed) => ({
             params: {},
             answers: ['แรงดึงเนื่องจากความตึงผิวจะมีทิศขนานกับผิวของของเหลวและตั้งฉากกับเส้นขอบที่สัมผัส'],
             answersRaw: [0],
-            explanation: () => `
-          - **ข้อ 1 ถูก:** ทิศของแรงตึงผิวแผ่ตามแนวขนานกับผิวน้ำและกระทำตั้งฉากกับขอบแกนวัตถุสัมผัส<br>
-          - **ข้อ 2 ผิด:** ความตึงผิวมีหน่วยเป็น นิวตันต่อเมตร (N/m)<br>
-          - **ข้อ 3 ผิด:** แมลงยืนบนผิวน้ำได้จากแรงดึงผิวพยุงขาแมลงไว้ ไม่ใช่เพราะตัวแมลงเบากว่าน้ำ<br>
-          - **ข้อ 4 ผิด:** สารลดแรงตึงผิว (เช่น สบู่) จะลดความตึงผิวเพื่อกระจายโมเลกุลน้ำ
-        `
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_2_1_concept_tension'), shuffled)
         })
     },
 
-    // 17.2.2 ความหนืด (Viscosity & Stokes' Law)
+    // 17.2.2 ความหนืดของของเหลว (Viscosity & Viscous Force) - ตามแนวทาง สสวท.
     {
-        id: '17_2_2_stokes_force', topic: '17.2.2', type: 'numeric_single',
-        title: 'แรงหนืดต้านตามกฎของสโตคส์',
-        inputs: [{ label: 'แรงหนืดต้านทาน \\( (\\text{N}) \\):' }],
-        text: (p) => `ปล่อยทรงกลมโลหะรัศมี \\( ${p.r_mm} \\text{ mm} \\) ลงในสารละลายหนืดที่มีสัมประสิทธิ์ความหนืด \\( ${p.eta} \\text{ Pa}\\cdot\\text{s} \\) ปรากฏว่าขณะที่ทรงกลมตกลงไปด้วยความเร็ว \\( ${p.v} \\text{ m/s} \\) จงหาแรงต้านความหนืดที่กระทำต่อทรงกลมนี้`,
-        generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const r_mm = seed ? getSeededRandomBase('17_2_2_stokes_r', seed, 2.0, 6.0, 0.5) : 4.0;
-            const eta = seed ? getSeededRandomBase('17_2_2_stokes_eta', seed, 0.5, 2.5, 0.5) : 1.5;
-            const v = seed ? getSeededRandomBase('17_2_2_stokes_v', seed, 0.1, 0.5, 0.05) : 0.2;
-
-            const r_m = r_mm / 1000;
-            const Fv = 6 * Math.PI * eta * r_m * v;
-
-            return {
-                params: { r_mm, eta, v: parseFloat(v.toFixed(2)), r: offset },
-                answers: [`\\( ${formatScientificLaTeX(Fv, 2)} \\)`, Fv.toExponential(2), Fv.toFixed(5)],
-                answersRaw: [Fv],
-                explanation: () => `
-          จากกฎความหนืดของสโตคส์ (Stokes' Law): \\( F_v = 6\\pi \\eta r v \\)<br>
-          - รัศมีของทรงกลม \\( r = ${r_mm} \\text{ mm} = ${r_m} \\text{ m} \\)<br>
-          - สัมประสิทธิ์ความหนืด \\( \\eta = ${eta} \\text{ Pa}\\cdot\\text{s} \\)<br>
-          - อัตราเร็วร่วงของเหลว \\( v = ${v} \\text{ m/s} \\)<br>
-          แทนค่าคำนวณ:<br>
-          \\( F_v = 6 \\cdot \\pi \\cdot ${eta} \\cdot ${r_m} \\cdot ${v} \\approx ${Fv.toExponential(3)} \\text{ N} \\)
-        `
-            };
-        }
-    },
-    {
-        id: '17_2_2_terminal_velocity', topic: '17.2.2', type: 'numeric_single',
-        title: 'ความเร็วปลายของทรงกลมในของไหลหนืด',
-        inputs: [{ label: 'อัตราเร็วปลาย \\( (\\text{m/s}) \\):' }],
-        text: (p) => `ปล่อยลูกกลมโลหะเหล็กหนาแน่น \\( 7.8 \\times 10^3 \\text{ kg/m}^3 \\) รัศมี \\( ${p.r_mm} \\text{ mm} \\) ให้ตกลงในแนวดิ่งใต้ของเหลวความหนาแน่น \\( 1.4 \\times 10^3 \\text{ kg/m}^3 \\) มีสัมประสิทธิ์ความหนืด \\( ${p.eta} \\text{ Pa}\\cdot\\text{s} \\) จงหาอัตราเร็วปลายคงตัวสูงสุดของการตก (กำหนดให้ \\( g = 10 \\text{ m/s}^2 \\))`,
-        generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const r_mm = seed ? getSeededRandomBase('17_2_2_term_r', seed, 2.0, 5.0, 0.5) : 3.0;
-            const eta = seed ? getSeededRandomBase('17_2_2_term_eta', seed, 0.8, 2.0, 0.2) : 1.2;
-
-            const r_m = r_mm / 1000;
-            const rho_s = 7800;
-            const rho_f = 1400;
-            const vt = (2 / 9) * (Math.pow(r_m, 2) * 10 * (rho_s - rho_f)) / eta;
-
-            return {
-                params: { r_mm, eta, r: offset },
-                answers: [vt.toFixed(2), vt.toFixed(3), vt.toFixed(1)],
-                answersRaw: [vt],
-                explanation: () => `
-          ที่อัตราเร็วปลาย (Terminal Velocity) แรงลัพธ์เป็นศูนย์: \\( W = B + F_v \\)<br>
-          ทำให้ได้สมการลัดอัตราเร็วปลายการจมทรงกลมหนืด:<br>
-          \\( v_t = \\frac{2}{9} \\frac{r^2 g (\\rho_s - \\rho_f)}{\\eta} \\)<br>
-          - รัศมี \\( r = ${r_mm} \\text{ mm} = ${r_m} \\text{ m} \\)<br>
-          - ความหนาแน่นทรงกลม \\( \\rho_s = 7800 \\text{ kg/m}^3 \\)<br>
-          - ความหนาแน่นของไหล \\( \\rho_f = 1400 \\text{ kg/m}^3 \\)<br>
-          แทนค่าในสูตร:<br>
-          \\( v_t = \\frac{2}{9} \\cdot \\frac{(${r_m})^2 \\cdot 10 \\cdot (7800 - 1400)}{${eta}} \\approx ${vt.toFixed(3)} \\text{ m/s} \\)
-        `
-            };
-        }
-    },
-    {
-        id: '17_2_2_concept_stokes', topic: '17.2.2', type: 'choice',
-        title: 'แนวคิดกฎของสโตคส์ความเร่งความเร็วคงที่',
+        id: '17_2_2_viscosity_definition', topic: '17.2.2', type: 'choice',
+        title: 'นิยามและความเข้าใจคลาดเคลื่อนเกี่ยวกับความหนืดและแรงหนืด',
         choices: [
-            'เมื่อทรงกลมเคลื่อนที่ในของเหลวจนถึงอัตราเร็วปลาย ผลรวมของแรงลัพธ์ที่กระทำต่อวัตถุจะมีค่าเป็นศูนย์พอดี',
-            'แรงต้านความหนืดของของไหลจะมีขนาดแปรผกผันกับความยาวรัศมีทรงกลมตามแรงต้านทาน',
-            'วัตถุทรงกลมจะตกลงด้วยความเร็วปลายคงตัวช้าลง หากขนาดความหนืดของสารหนืดลดลง',
-            'การทดลองปล่อยวัตถุตกในของไหลหนืดจะเคลื่อนที่ด้วยความเร่งคงที่สม่ำเสมอตลอดความลึก'
+            'ความหนืดเป็นสมบัติของของเหลวทุกชนิดที่ต้านการไหล และแรงหนืดคือแรงที่ของเหลวต้านการเคลื่อนที่ของวัตถุในของเหลวนั้น',
+            'ความหนืดเป็นสมบัติเฉพาะตัวที่มีอยู่เฉพาะในของเหลวที่มีความเข้มข้นหรือเหนียวข้นมากเท่านั้น',
+            'แรงหนืดจะมีทิศทางเดียวกับการเคลื่อนที่ของวัตถุเสมอเพื่อช่วยส่งเสริมการตกให้เร็วขึ้น',
+            'แรงหนืดจะเกิดขึ้นเฉพาะเมื่อวัตถุหยุดนิ่งลอยอยู่กลางของเหลวเท่านั้น'
         ],
-        text: () => `เมื่อพิจารณาวัตถุทรงกลมเคลื่อนที่ตกภายใต้แรงต้านความหนืดของของของไหลตามทฤษฎี ข้อใดกล่าวถูกต้องที่สุด`,
+        choiceExplanations: [
+            { isCorrect: true, text: 'ความหนืดเป็นสมบัติของของเหลวทุกชนิดในการต้านการไหลหรือต้านการเคลื่อนที่ และแรงหนืดคือแรงที่ของเหลวต้านการเคลื่อนที่ของวัตถุผ่านของเหลว' },
+            { isCorrect: false, text: 'สสวท. ระบุว่าความคิดคลาดเคลื่อนคือคิดว่าความหนืดมีเฉพาะในของเหลวเข้มข้น แต่แนวคิดที่ถูกต้องคือความหนืดเป็นสมบัติของของเหลวทุกชนิด' },
+            { isCorrect: false, text: 'แรงหนืดมีทิศทางตรงข้ามกับการเคลื่อนที่ของวัตถุเสมอเพื่อต้านการเคลื่อนที่' },
+            { isCorrect: false, text: 'แรงหนืดเกิดขึ้นขณะวัตถุกำลังเคลื่อนที่ผ่านของเหลว' }
+        ],
+        text: () => `เมื่อพิจารณาสมบัติความหนืด (Viscosity) และแรงหนืด (Viscous Force) ของของเหลวตามหลักการ สสวท. ข้อความใดถูกต้องที่สุด`,
         generate: (seed) => ({
             params: {},
-            answers: ['เมื่อทรงกลมเคลื่อนที่ in ของเหลวจนถึงอัตราเร็วปลาย ผลรวมของแรงลัพธ์ที่กระทำต่อวัตถุจะมีค่าเป็นศูนย์พอดี'],
+            answers: ['ความหนืดเป็นสมบัติของของเหลวทุกชนิดที่ต้านการไหล และแรงหนืดคือแรงที่ของเหลวต้านการเคลื่อนที่ของวัตถุในของเหลวนั้น'],
             answersRaw: [0],
-            explanation: () => `
-          - **ข้อ 1 ถูก:** เมื่อ W = B + Fv วัตถุเข้าสู่สมดุลกลและเคลื่อนที่ด้วยความเร็วคงที่สม่ำเสมอ ความเร่งเป็น 0<br>
-          - **ข้อ 2 ผิด:** แรงหนืดแปรผันตรงกับรัศมี (Fv ∝ r)<br>
-          - **ข้อ 3 ผิด:** ความหนืดต่ำ วัตถุจะตกได้เร็วขึ้น (vt สูงขึ้น)<br>
-          - **ข้อ 4 ผิด:** ในช่วงต้นความเร็วไม่คงที่ทำให้เกิดความเร่งไม่คงตัว ก่อนความเร่งเข้าสู่ศูนย์
-        `
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_2_2_viscosity_definition'), shuffled)
+        })
+    },
+    {
+        id: '17_2_2_motion_in_fluid', topic: '17.2.2', type: 'choice',
+        title: 'พฤติกรรมการเคลื่อนที่ของลูกกลมเหล็กเมื่อปล่อยในของเหลวหนืด',
+        choices: [
+            'ช่วงแรกอัตราเร็วจะเพิ่มขึ้น (มีความเร่ง) เมื่อถึงจุดหนึ่งอัตราเร็วจะสม่ำเสมอคงตัว (ความเร่งเป็นศูนย์)',
+            'ลูกกลมเหล็กจะเคลื่อนที่ด้วยอัตราเร็วคงตัวสม่ำเสมอตลอดการตกตั้งแต่วินาทีแรกที่ปล่อย',
+            'ลูกกลมเหล็กจะเคลื่อนที่ด้วยความเร่งคงที่สม่ำเสมอตลอดความลึกของกระบอกตวง',
+            'ช่วงแรกอัตราเร็วจะลดลงเรื่อยๆ จนกระทั่งวัตถุหยุดนิ่งอยู่กลางของเหลว'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ตาม สสวท. เมื่อปล่อยลูกกลมเหล็ก ช่วงแรกแรงลัพธ์ไม่เป็นศูนย์ วัตถุจะมีความเร่งและอัตราเร็วเพิ่มขึ้น จนเมื่อแรงหนืดร่วมกับแรงพยุงสมดุลกับน้ำหนัก (W = B + Fv) แรงลัพธ์เป็น 0 อัตราเร็วจะสม่ำเสมอคงตัว (อัตราเร็วปลาย vt)' },
+            { isCorrect: false, text: 'ช่วงแรกความเร่งไม่เป็นศูนย์ อัตราเร็วต้องเพิ่มขึ้นก่อน' },
+            { isCorrect: false, text: 'ความเร่งจะลดลงเรื่อยๆ จนกลายเป็นศูนย์เมื่อเข้าสู่สมดุล ไม่ได้คงที่ตลอดการตก' },
+            { isCorrect: false, text: 'ลูกกลมเหล็กที่มีความหนาแน่นมากกว่าของเหลวจะจมต่อจนถึงก้นภาชนะด้วยอัตราเร็วคงตัว' }
+        ],
+        text: () => `จากการทดลองปล่อยลูกกลมเหล็กให้จมลงในแนวดิ่งใต้ของเหลวที่มีความหนืด การเปลี่ยนแปลงอัตราเร็วและความเร่งของลูกกลมเหล็กเป็นอย่างไร`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['ช่วงแรกอัตราเร็วจะเพิ่มขึ้น (มีความเร่ง) เมื่อถึงจุดหนึ่งอัตราเร็วจะสม่ำเสมอคงตัว (ความเร่งเป็นศูนย์)'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_2_2_motion_in_fluid'), shuffled)
+        })
+    },
+    {
+        id: '17_2_2_viscosity_time', topic: '17.2.2', type: 'choice',
+        title: 'ผลของความหนืดต่อเวลาในการเคลื่อนที่ของวัตถุ (กิจกรรม 17.4)',
+        choices: [
+            'ลูกกลมเหล็กจะใช้เวลาตกถึงก้นภาชนะต่างกัน โดยในของเหลวที่มีความหนืดมาก วัตถุจะใช้เวลาเคลื่อนที่มากกว่า (ตกได้ช้ากว่า)',
+            'ลูกกลมเหล็กจะใช้เวลาตกถึงก้นภาชนะเท่ากันพอดี เนื่องจากลูกกลมเหล็กมีขนาดและน้ำหนักเท่ากัน',
+            'ในของเหลวที่มีความหนืดมาก ลูกกลมเหล็กจะตกถึงก้นภาชนะได้รวดเร็วกว่าของเหลวที่มีความหนืดน้อย',
+            'ความหนืดของของเหลวไม่มีผลต่อเวลาในการตก ขึ้นอยู่กับมวลของลูกกลมเหล็กเพียงอย่างเดียว'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'จากกิจกรรม 17.4 ของ สสวท. เมื่อปล่อยลูกกลมเหล็กในของเหลวต่างชนิดกันที่ลึกเท่ากัน จะใช้เวลาต่างกัน โดยในของเหลวหนืดมากจะใช้เวลาเคลื่อนที่มากกว่า (ตกช้ากว่า)' },
+            { isCorrect: false, text: 'เวลาในการตกไม่เท่ากัน ขึ้นอยู่กับความหนืดของของเหลว' },
+            { isCorrect: false, text: 'ของเหลวที่มีความหนืดมากจะต้านทานการเคลื่อนที่มากกว่า ทำให้วัตถุเคลื่อนที่ได้ช้ากว่า' },
+            { isCorrect: false, text: 'ความหนืดของของเหลวมีผลโดยตรงต่อแรงต้านทานการตกและระยะเวลาในการจม' }
+        ],
+        text: () => `เมื่อปล่อยลูกกลมเหล็กขนาดเท่ากันลงในของเหลวต่างชนิดกันที่มีความลึกเท่ากัน (ตามกิจกรรม 17.4 ของ สสวท.) ข้อใดสรุปผลได้ถูกต้อง`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['ลูกกลมเหล็กจะใช้เวลาตกถึงก้นภาชนะต่างกัน โดยในของเหลวที่มีความหนืดมาก วัตถุจะใช้เวลาเคลื่อนที่มากกว่า (ตกได้ช้ากว่า)'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_2_2_viscosity_time'), shuffled)
         })
     },
 
@@ -1792,17 +1803,18 @@ const QUESTION_TEMPLATES = [
             'ความดันเกจเนื่องจากน้ำหนักของเหลวจะแปรผกผันกับระดับความหนาแน่นของของไหล',
             'ความดันเนื่องจากน้ำหนักของเหลวที่ก้นภาชนะแปรตามขนาดพื้นที่หน้าตัดรูปทรงของภาชนะ'
         ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ที่ระดับความลึกเดียวกันความดันของเหลวส่งผ่านสมดุลสถิตเท่ากันทุกทิศทาง' },
+            { isCorrect: false, text: 'ความดันสัมบูรณ์ (P = P0 + Pg) มีค่ามากกว่าความดันเกจ (Pg) เสมอ' },
+            { isCorrect: false, text: 'ความดันเกจแปรผันตรงกับความหนาแน่น (Pg ∝ ρ)' },
+            { isCorrect: false, text: 'ความดันของของเหลว P = ρgh ไม่ขึ้นกับหน้าตัดหรือรูปร่างถังบรรจุ' }
+        ],
         text: () => `ตามทฤษฎีกลศาสตร์เรื่องความดันสถิตของของเหลว ข้อความใดระบุสมบัติหลักได้ถูกต้องที่สุด`,
         generate: (seed) => ({
             params: {},
             answers: ['ความดันในของเหลว ณ จุดใดๆ ที่ความลึกเดียวกันจะมีขนาดเท่ากันในทุกทิศทาง'],
             answersRaw: [0],
-            explanation: () => `
-          - **ข้อ 1 ถูก:** ที่ระดับความลึกเดียวกันความดันของเหลวส่งผ่านสมดุลสถิตเท่ากันทุกทิศทาง<br>
-          - **ข้อ 2 ผิด:** ความดันสัมบูรณ์ (P = P0 + Pg) มีค่ามากกว่าความดันเกจ (Pg) เสมอ<br>
-          - **ข้อ 3 ผิด:** ความดันเกจแปรผันตรงกับความหนาแน่น (Pg ∝ ρ)<br>
-          - **ข้อ 4 ผิด:** ความดันของของเหลว P = ρgh ไม่ขึ้นกับหน้าตัดหรือรูปร่างถังบรรจุ
-        `
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_3_1_concept_pressure'), shuffled)
         })
     },
 
@@ -1878,17 +1890,18 @@ const QUESTION_TEMPLATES = [
             'หลักการทำงานของพาสคัลจะใช้การไม่ได้โดยสิ้นเชิงในน้ำมันอัดที่มีค่าระดับความหนืดสูงมาก',
             'ขนาดแรงดันลัพธ์ที่ได้จากการขยายพื้นที่ลูกสูบใหญ่จะแปรผกผันกับปริมาตรรวมของของเหลวในระบบ'
         ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'เป็นนิยามพื้นฐานของกฎพาสคัล (Pressure transmitted equally)' },
+            { isCorrect: false, text: 'ระบบช่วยผ่อนแรงจริงแต่ไม่ได้ช่วยลดงาน (พลังงานคงที่ตามกฎทรงพลังงาน W_in = W_out)' },
+            { isCorrect: false, text: 'ความหนืดยังคงส่งผ่านความดันสถิตได้เหมือนเดิม เพียงแต่อาจช้าขึ้นเล็กน้อย' },
+            { isCorrect: false, text: 'แรงยกชึ้นอยู่กับอัตราส่วนของพื้นที่หน้าตัดสูบใหญ่ต่อสูบเล็ก ไม่เกี่ยวกับปริมาณน้ำมัน' }
+        ],
         text: () => `ข้อความสรุปเกี่ยวกับเครื่องอัดไฮดรอลิกและกลศาสตร์กฎของพาสคัล (Pascal's Law) ข้อใดถูกต้องที่สุด`,
         generate: (seed) => ({
             params: {},
             answers: ['การเพิ่มความดันให้ของเหลวที่อยู่นิ่งปิดภาชนะ ความดันจะส่งต่อแรงกระจายเท่ากันไปยังทุกบริเวณของของเหลว'],
             answersRaw: [0],
-            explanation: () => `
-          - **ข้อ 1 ถูก:** เป็นนิยามพื้นฐานของกฎพาสคัล (Pressure transmitted equally)<br>
-          - **ข้อ 2 ผิด:** ระบบช่วยผ่อนแรงจริงแต่ไม่ได้ช่วยลดงาน (พลังงานคงที่ตามกฎทรงพลังงาน W_in = W_out)<br>
-          - **ข้อ 3 ผิด:** ความหนืดยังคงส่งผ่านความดันสถิตได้เหมือนเดิม เพียงแต่อาจช้าขึ้นเล็กน้อย<br>
-          - **ข้อ 4 ผิด:** แรงยกชึ้นอยู่กับอัตราส่วนของพื้นที่หน้าตัดสูบใหญ่ต่อสูบเล็ก ไม่เกี่ยวกับปริมาณน้ำมัน
-        `
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_3_2_concept_pascal'), shuffled)
         })
     },
 
@@ -1960,17 +1973,18 @@ const QUESTION_TEMPLATES = [
             'ขนาดแรงพยุงจะมีค่าเพิ่มสูงขึ้นเป็นทวีคูณเมื่อดึงหรือกดวัตถุลงใต้ผิวน้ำทะเลลึกขึ้นไปอีก',
             'แผ่นเหล็กแบนกว้างทรงสี่เหลี่ยมสามารถลอยตัวได้ง่ายกว่าก้อนกลมเพราะมีแรงดึงผิวมากกว่า'
         ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'เป็นนิยามพื้นฐานของหลักการอาร์คิมีดีส (Buoyancy force equals weight of displaced fluid)' },
+            { isCorrect: false, text: 'วัตถุจะจมถาวรหากความหนาแน่นของมันมากกว่าของเหลว (ρ_obj > ρ_fluid)' },
+            { isCorrect: false, text: 'เมื่อจมมิดวัตถุแล้ว ปริมาตรแทนที่ (V_sub) จะคงที่ แรงลอยตัวจึงคงเดิมไม่ขึ้นกับระดับความลึก' },
+            { isCorrect: false, text: 'แผ่นเหล็กลอยได้หรือไม่ได้ชี้วัดที่ความหนาแน่นเฉลี่ยของเรือหรือการออกแบบปริมาตรฟองอากาศพยุง' }
+        ],
         text: () => `ตามหลักกลศาสตร์ของแรงลอยตัว (Buoyancy) และอาร์คิมีดีส ข้อความใดกล่าวได้ถูกต้องตามหลักวิทยาศาสตร์ที่สุด`,
         generate: (seed) => ({
             params: {},
             answers: ['แรงพยุงของของไหลมีขนาดเท่ากับน้ำหนักของของไหลที่ถูกแทนที่โดยวัตถุนั้น'],
             answersRaw: [0],
-            explanation: () => `
-          - **ข้อ 1 ถูก:** เป็นนิยามพื้นฐานของหลักการอาร์คิมีดีส (Buoyancy force equals weight of displaced fluid)<br>
-          - **ข้อ 2 ผิด:** วัตถุจะจมถาวรหากความหนาแน่นของมันมากกว่าของเหลว (ρ_obj > ρ_fluid)<br>
-          - **ข้อ 3 ผิด:** เมื่อจมมิดวัตถุแล้ว ปริมาตรแทนที่ (V_sub) จะคงที่ แรงลอยตัวจึงคงเดิมไม่ขึ้นกับระดับความลึก<br>
-          - **ข้อ 4 ผิด:** แผ่นเหล็กลอยได้หรือไม่ได้ชี้วัดที่ความหนาแน่นเฉลี่ยของเรือหรือการออกแบบปริมาตรฟองอากาศพยุง
-        `
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_3_3_concept_buoyancy'), shuffled)
         })
     }
 ];
@@ -2115,7 +2129,7 @@ function regeneratePractice() {
         break;
     }
 
-    currentPracticeQuestion = { template, instance };
+    currentPracticeQuestion = { template, instance, shuffledChoices: [] };
     document.getElementById('prac-badge-mode').innerText = `หมวดหมู่โจทย์: ${template.topic} • ${isRandom ? 'โหมดสุ่มตัวเลข' : 'โจทย์ปกติ'}`;
     document.getElementById('prac-question-title').innerText = `📋 โจทย์: ${template.title}`;
     document.getElementById('prac-question-text').innerHTML = template.text(instance.params);
@@ -2130,7 +2144,12 @@ function regeneratePractice() {
     if (template.type === 'choice') {
         cz.classList.remove('hidden');
         nz.classList.add('hidden');
-        cz.innerHTML = template.choices.map(c => `<button onclick="checkPracticeChoice('${c}')" class="w-full text-left px-5 py-3 bg-white hover:bg-cyan-50 text-slate-800 font-medium rounded-xl border border-slate-200 hover:border-cyan-300 transition">${c}</button>`).join('');
+        const shuffledChoices = pureShuffle(template.choices);
+        currentPracticeQuestion.shuffledChoices = shuffledChoices;
+        cz.innerHTML = shuffledChoices.map(c => {
+            const escaped = c.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return `<button onclick="checkPracticeChoice(this.getAttribute('data-choice'))" data-choice="${escaped}" class="w-full text-left px-5 py-3 bg-white hover:bg-cyan-50 text-slate-800 font-medium rounded-xl border border-slate-200 hover:border-cyan-300 transition">${c}</button>`;
+        }).join('');
     } else {
         cz.classList.add('hidden');
         nz.classList.remove('hidden');
@@ -2163,8 +2182,12 @@ function checkPracticeAnswer() {
 
 function checkPracticeChoice(choice) {
     if (!currentPracticeQuestion) return;
-    const { instance } = currentPracticeQuestion;
-    showPracticeFeedback(choice === instance.answers[0], instance.explanation());
+    const { template, instance, shuffledChoices } = currentPracticeQuestion;
+    const isCorrect = choice === instance.answers[0];
+    const explanationText = template.type === 'choice'
+        ? formatChoiceExplanation(template, shuffledChoices)
+        : instance.explanation();
+    showPracticeFeedback(isCorrect, explanationText);
 }
 
 function showPracticeFeedback(isCorrect, explainText) {
@@ -2193,15 +2216,6 @@ function startExamProcess() {
     examSeed = `${num}_${timestamp}`;
     examDurationSeconds = 15 * 60;
     examStudentInfo = { name, class: cls, number: num, seed: examSeed };
-
-    const pureShuffle = (array) => {
-        const arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    };
 
     // Filter questions by subtopics:
     const topics = ['17.2.1', '17.2.2', '17.3.1', '17.3.2', '17.3.3'];
@@ -2258,12 +2272,15 @@ function startExamProcess() {
         }
 
         const choices = template.type === 'choice' ? pureShuffle(template.choices) : [];
+        const explanationText = template.type === 'choice'
+            ? formatChoiceExplanation(template, choices)
+            : instance.explanation();
         return {
             id: template.id, topic: template.topic, type: template.type, title: template.title,
             text: template.text(instance.params), inputs: template.inputs || [], choices: choices,
             answers: instance.answers,
             answersRaw: instance.answersRaw,
-            explanationText: instance.explanation()
+            explanationText: explanationText
         };
     });
 

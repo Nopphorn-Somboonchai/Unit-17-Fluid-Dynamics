@@ -122,7 +122,7 @@
                         <span class="text-cyan-600 text-xl md:text-3xl font-mono mt-1 inline-block">\( (\gamma = \frac{F}{L} , B = \rho V g) \)</span>
                     </h2>
                     <p class="text-slate-600 text-sm md:text-base leading-relaxed">
-                        ศึกษาพฤติกรรมเชิงกลของของไหลเมื่ออยู่นิ่ง สมบัติความตึงผิว ความหนืดตามกฎของสโตคส์ ค้นหาคำตอบของความดันเกจและความดันสัมบูรณ์ใต้น้ำลึก รวมถึงหลักการทำงานของเครื่องอัดไฮดรอลิกตามกฎของพาสคัล และแรงพยุงของของไหลตามหลักของอาร์คิมีดีส ผ่านการทดลองเสมือนจริงและการวัดค่าที่แม่นยำ
+                        ศึกษาพฤติกรรมเชิงกลของของไหลเมื่ออยู่นิ่ง สมบัติความตึงผิวและความหนืดของของเหลวตามแนวทาง สสวท. ค้นหาคำตอบของความดันเกจและความดันสัมบูรณ์ใต้น้ำลึก รวมถึงหลักการทำงานของเครื่องอัดไฮดรอลิกตามกฎของพาสคัล และแรงพยุงของของไหลตามหลักของอาร์คิมีดีส ผ่านการทดลองเสมือนจริงและการวัดค่าที่แม่นยำ
                     </p>
 
                     <div id="latest-score-badge"
@@ -180,7 +180,7 @@
                         1. ทบทวนเนื้อหา <i
                             class="fa-solid fa-arrow-right text-sm text-cyan-500 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all"></i>
                     </h3>
-                    <p class="text-sm text-slate-500 leading-relaxed relative z-10">ศึกษาพฤติกรรมความตึงผิว แรงหนืดตามกฎของสโตคส์ และการลอยตัวตามหลักของอาร์คิมีดีส</p>
+                    <p class="text-sm text-slate-500 leading-relaxed relative z-10">ศึกษาพฤติกรรมความตึงผิว แรงหนืดและความหนืดของของเหลวตามแนวทาง สสวท. และการลอยตัวตามหลักของอาร์คิมีดีส</p>
                 </button>
 
                 <button onclick="showSection('practice')"
@@ -237,12 +237,12 @@
                             class="text-cyan-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-wind"></i> 17.2 ความตึงผิวและความหนืด
                         </div>
-                        <h5 class="font-bold text-sm mb-2 text-slate-100">ความตึงผิว & กฎของสโตคส์</h5>
-                        <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">แรงดึงของเหลวต่อความยาวเส้นขอบสัมผัส และแรงต้านการเคลื่อนที่ทรงกลมในของไหล
+                        <h5 class="font-bold text-sm mb-2 text-slate-100">ความตึงผิว & ความหนืดของของเหลว</h5>
+                        <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">แรงดึงของเหลวต่อความยาวเส้นขอบสัมผัส และสมบัติต้านการไหล/ต้านการเคลื่อนที่ตาม สสวท.
                         </p>
                         <div
                             class="text-[11px] font-mono text-cyan-300 bg-black/40 p-2 rounded text-center border border-white/5">
-                            \( \gamma = \frac{F}{L} \quad , \quad F_v = 6\pi \eta r v \)
+                            \( \gamma = \frac{F}{L} \quad , \quad \text{แรงหนืดต้านทาน } F_v \)
                         </div>
                     </div>
 
@@ -698,8 +698,8 @@
                         class="w-9 h-9 shrink-0 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold">
                         17.2.2</div>
                     <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">แรงหนืดและสโตคส์</h4>
-                        <p class="text-[9px] text-slate-500">หาความหนืด \( F = 6\pi\eta r v \)</p>
+                        <h4 class="font-bold text-xs whitespace-nowrap">ความหนืดและแรงหนืด</h4>
+                        <p class="text-[9px] text-slate-500">มโนทัศน์เชิงทฤษฎีตาม สสวท.</p>
                     </div>
                 </button>
                 <button onclick="startPracticeMode('17-3-1')" id="btn-prac-17-3-1"
@@ -943,7 +943,7 @@
                     <div class="relative w-40 h-40 flex items-center justify-center shrink-0">
                         <svg class="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-md">
                             <circle cx="80" cy="80" r="70" stroke="#f1f5f9" stroke-width="12" fill="transparent" />
-                            <circle cx="80" cy="80" r="70" id="res-circle-progress" stroke="#0891b2"
+                            <circle cx="80" cy="80" r="70" id="res-circle-progress" stroke="#e6915d"
                                 stroke-dasharray="439.8" stroke-dashoffset="439.8" stroke-width="12" fill="transparent"
                                 stroke-linecap="round" class="transition-all duration-1500 ease-out" />
                         </svg>

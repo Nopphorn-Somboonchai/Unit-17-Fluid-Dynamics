@@ -1021,7 +1021,7 @@ function initTensionSim() {
         state.className = 'text-xs px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded';
     }
 
-    renderTensionLoop();
+    activeAnimFrame = requestAnimationFrame(renderTensionLoop);
 }
 
 function updateTensionParams() {
@@ -1156,7 +1156,11 @@ function startAutoIncreaseW() {
 
 function renderTensionLoop() {
     const canvas = document.getElementById('tensionCanvas');
-    if (!canvas) return;
+    if (!canvas) {
+        // Canvas not ready yet — retry next frame instead of dying permanently
+        activeAnimFrame = requestAnimationFrame(renderTensionLoop);
+        return;
+    }
 
     const ctx = canvas.getContext('2d');
     const w = canvas.width;
@@ -1515,38 +1519,36 @@ function initCanvases() {
         const vgCanvas = document.getElementById('viscosityGraphCanvas');
         const tCanvas = document.getElementById('tensionCanvas');
 
-        if (bCanvas && vCanvas && vgCanvas) {
-            const bw = bCanvas.parentElement.clientWidth || 300;
-            const vw = vCanvas.parentElement.clientWidth || 100;
-            const vgw = vgCanvas.parentElement.clientWidth || 250;
-
-            bCanvas.width = bw;
+        // Resize each canvas independently (don't require all to exist)
+        if (bCanvas) {
+            bCanvas.width = bCanvas.parentElement.clientWidth || 300;
             bCanvas.height = 224;
-
-            vCanvas.width = vw;
+        }
+        if (vCanvas) {
+            vCanvas.width = vCanvas.parentElement.clientWidth || 100;
             vCanvas.height = 208;
-
-            vgCanvas.width = vgw;
+        }
+        if (vgCanvas) {
+            vgCanvas.width = vgCanvas.parentElement.clientWidth || 250;
             vgCanvas.height = 176;
+        }
+        if (tCanvas) {
+            tCanvas.width = tCanvas.parentElement.clientWidth || 340;
+            tCanvas.height = 224;
+        }
 
-            if (tCanvas) {
-                tCanvas.width = tCanvas.parentElement.clientWidth || 340;
-                tCanvas.height = 224;
-            }
+        stopSimulations();
 
-            stopSimulations();
+        if (currentSection === 'review') {
+            const btnT = document.getElementById('btn-tab-17-2-tension');
+            const btnV = document.getElementById('btn-tab-17-2-viscosity');
+            const activeTab = (btnT && btnT.classList.contains('bg-white'))
+                ? '17-2-tension'
+                : ((btnV && btnV.classList.contains('bg-white')) ? '17-2-viscosity' : '17-3-buoyancy');
 
-            if (currentSection === 'review') {
-                const btnT = document.getElementById('btn-tab-17-2-tension');
-                const btnV = document.getElementById('btn-tab-17-2-viscosity');
-                const activeTab = (btnT && btnT.classList.contains('bg-white'))
-                    ? '17-2-tension'
-                    : ((btnV && btnV.classList.contains('bg-white')) ? '17-2-viscosity' : '17-3-buoyancy');
-
-                if (activeTab === '17-2-tension') renderTensionLoop();
-                if (activeTab === '17-2-viscosity') renderViscosityLoop();
-                if (activeTab === '17-3-buoyancy') renderBuoyancyLoop();
-            }
+            if (activeTab === '17-2-tension') initTensionSim();
+            else if (activeTab === '17-2-viscosity') initViscositySim();
+            else initBuoyancySim();
         }
     });
 }
@@ -2564,7 +2566,7 @@ window.onload = () => {
 
     const totalQuestions = QUESTION_TEMPLATES.length;
     const totalCount = document.getElementById('total-count');
-    if (totalCount) totalCount.innerText = '5';
+    if (totalCount) totalCount.innerText = totalQuestions;
 };
 
 let resizeTimer;

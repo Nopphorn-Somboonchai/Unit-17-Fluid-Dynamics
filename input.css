@@ -25,17 +25,6 @@
     --accent: #e6915d; /* peach accent */
 }
 
-.total-questions-badge {
-    display: inline-block;
-    background-color: var(--accent);
-    color: #fff;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    font-size: 0.9em;
-}
-
 body {
     font-family: 'Prompt', 'Sarabun', sans-serif;
     color: var(--ink);

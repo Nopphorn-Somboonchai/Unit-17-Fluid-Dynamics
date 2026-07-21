@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ฟิสิกส์ ม.6: บทที่ 17.2 & 17.3 สมบัติของของไหลและของไหลสถิต 🌊</title>
+    <title>ฟิสิกส์ ม.6: บทที่ 17.4 พลศาสตร์ของของไหล (Fluid Dynamics) 🌊</title>
 
     <!-- Preconnect to external domains for performance optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,6 +47,53 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <link rel="stylesheet" href="style.css">
+    <style>
+        .sim-formula-box {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+            border: 1px solid #334155 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .sim-formula-title {
+            color: #38bdf8 !important;
+            font-weight: 700 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+        }
+
+        .sim-formula-item {
+            background-color: #020617 !important;
+            border: 1px solid #334155 !important;
+            border-radius: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .sim-formula-label {
+            color: #f8fafc !important;
+            font-weight: 600 !important;
+            font-size: 0.8125rem !important;
+        }
+
+        .sim-formula-math {
+            color: #38bdf8 !important;
+            font-weight: 700 !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+
+        .sim-formula-math-accent {
+            color: #4ade80 !important;
+            font-weight: 700 !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+
+        .sim-formula-math-amber {
+            color: #fbbf24 !important;
+            font-weight: 700 !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+    </style>
 </head>
 
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -57,12 +104,12 @@
             <div class="flex items-center gap-3">
                 <div
                     class="bg-cyan-500/20 text-cyan-300 p-3 rounded-xl border border-cyan-400/30 shadow-inner text-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-droplet"></i>
+                    <i class="fa-solid fa-water"></i>
                 </div>
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold tracking-wide text-white drop-shadow-md">ฟิสิกส์ ม.6 บทที่
                         17 เรื่องของแข็งและของไหล</h1>
-                    <p class="text-xs md:text-sm text-cyan-200">บทที่ 17.2 & 17.3 สมบัติของของไหลและของไหลสถิต |
+                    <p class="text-xs md:text-sm text-cyan-200">บทที่ 17.4 พลศาสตร์ของของไหล (Fluid Dynamics) |
                         โรงเรียนห้องสอนศึกษา ในพระอุปถัมภ์ฯ</p>
                 </div>
             </div>
@@ -123,18 +170,20 @@
                 <div class="space-y-4 max-w-2xl relative z-10">
                     <span
                         class="bg-cyan-100 text-cyan-800 border border-cyan-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
-                        ฟิสิกส์ ม.6 บทที่ 17.2 & 17.3
+                        ฟิสิกส์ ม.6 บทที่ 17.4
                     </span>
                     <h2 class="text-2xl md:text-4xl font-extrabold text-slate-800 leading-tight">
-                        สมบัติของของไหลและของไหลสถิต <br class="hidden md:block">
-                        <span class="text-cyan-600 text-xl md:text-3xl font-mono mt-1 inline-block">\( (\gamma =
-                            \frac{F}{L} , B = \rho V g) \)</span>
+                        พลศาสตร์ของของไหล (Fluid Dynamics) <br class="hidden md:block">
+                        <span class="text-cyan-600 text-xl md:text-3xl font-mono mt-1 inline-block">\( (Q = Av \ , \ A_1
+                            v_1 = A_2 v_2 \ , \ P + \frac{1}{2}\rho v^2 + \rho g y = \text{const}) \)</span>
                     </h2>
                     <p class="text-slate-600 text-sm md:text-base leading-relaxed">
-                        ศึกษาพฤติกรรมเชิงกลของของไหลเมื่ออยู่นิ่ง สมบัติความตึงผิวและความหนืดของของเหลวตามแนวทาง สสวท.
-                        ค้นหาคำตอบของความดันเกจและความดันสัมบูรณ์ใต้น้ำลึก
-                        รวมถึงหลักการทำงานของเครื่องอัดไฮดรอลิกตามกฎของพาสคัล และแรงพยุงของของไหลตามหลักของอาร์คิมีดีส
-                        ผ่านการทดลองเสมือนจริงและการวัดค่าที่แม่นยำ
+                        ศึกษาพฤติกรรมกลศาสตร์การเคลื่อนที่ของของไหลอุดมคติ (Ideal Fluid), อัตราการไหล (\(Q = Av\)),
+                        สมการความต่อเนื่อง (\(A_1 v_1 = A_2 v_2\)), และสมการแบร์นูลลี
+                        ตลอดจนการประยุกต์ใช้งานในชีวิตประจำวัน
+                        (กฎของตอร์รีเชลลี, เครื่องพ่นละอองน้ำ, แรงยกปีกเครื่องบิน และหลังคาบ้านปลิวในพายุ)
+                        ผ่านการจำลองภาพเสมือนจริง (Virtual Simulation) การฝึกทำโจทย์แบบสุ่ม
+                        และระบบสอบเก็บคะแนนแบบจับเวลา
                     </p>
 
                     <div id="latest-score-badge"
@@ -151,39 +200,45 @@
                     </div>
                 </div>
 
-                <!-- Hero Graphic (Fluid Density & Archimedes Beaker Animation) -->
+                <!-- Hero Graphic (Venturi Pipe & Fluid Streamlines Animation) -->
                 <div class="w-full md:w-72 flex justify-center relative z-10">
-                    <svg class="w-56 h-56 drop-shadow-xl" viewBox="0 0 200 200" fill="none"
+                    <svg class="w-64 h-56 drop-shadow-xl" viewBox="0 0 240 180" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
-                        <!-- Beaker (glass contour) -->
+                        <!-- Background Venturi Pipe Outline -->
                         <path
-                            d="M 40 40 L 40 170 C 40 175, 45 180, 50 180 L 150 180 C 155 180, 160 175, 160 170 L 160 40"
-                            stroke="#334155" stroke-width="6" stroke-linecap="round" fill="none" />
-                        <!-- Spout of water overflow -->
-                        <path d="M 160 60 L 175 68 L 175 75 L 160 70" stroke="#334155" stroke-width="4"
-                            stroke-linejoin="round" fill="#38bdf8" />
-                        <!-- Water level inside beaker -->
-                        <path d="M 43 65 L 157 65 L 157 177 L 43 177 Z" fill="#38bdf8" opacity="0.4" />
-                        <!-- Floating Block -->
-                        <rect x="75" y="45" width="50" height="40" rx="4" fill="#b45309" stroke="#78350f"
-                            stroke-width="2" />
-                        <!-- Water level indicator / dashes -->
-                        <line x1="43" y1="65" x2="157" y2="65" stroke="#0284c7" stroke-width="2"
-                            stroke-dasharray="4,2" />
-                        <!-- Forces vectors inside/on block -->
-                        <!-- Buoyant force arrow (Green pointing up) -->
-                        <path d="M 100 45 L 100 15 M 95 22 L 100 15 L 105 22" stroke="#10b981" stroke-width="3"
+                            d="M 20 40 L 80 40 L 120 70 L 160 70 L 200 40 L 220 40 L 220 140 L 200 140 L 160 110 L 120 110 L 80 140 L 20 140 Z"
+                            fill="#f0f9ff" stroke="#0284c7" stroke-width="4" stroke-linejoin="round" />
+                        <!-- Fluid Body Fill -->
+                        <path
+                            d="M 22 42 L 79 42 L 119 72 L 161 72 L 201 42 L 218 42 L 218 138 L 201 138 L 161 108 L 119 108 L 79 138 L 22 138 Z"
+                            fill="#38bdf8" opacity="0.35" />
+                        <!-- Streamlines -->
+                        <path d="M 20 60 C 60 60, 100 80, 140 80 C 180 80, 200 60, 220 60" stroke="#0284c7"
+                            stroke-width="2" stroke-dasharray="6,3" opacity="0.8" />
+                        <path d="M 20 90 L 220 90" stroke="#0369a1" stroke-width="2.5" stroke-dasharray="8,4" />
+                        <path d="M 20 120 C 60 120, 100 100, 140 100 C 180 100, 200 120, 220 120" stroke="#0284c7"
+                            stroke-width="2" stroke-dasharray="6,3" opacity="0.8" />
+                        <!-- Vertical Manometer Pressure Tubes -->
+                        <!-- Tube 1 (Wide Area A1, High Pressure P1, Higher Water Level) -->
+                        <rect x="45" y="10" width="14" height="30" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+                        <rect x="46" y="18" width="12" height="22" fill="#38bdf8" opacity="0.6" />
+                        <!-- Tube 2 (Narrow Neck A2, Low Pressure P2, Lower Water Level) -->
+                        <rect x="133" y="25" width="14" height="45" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+                        <rect x="134" y="52" width="12" height="18" fill="#38bdf8" opacity="0.6" />
+                        <!-- Velocity Vectors -->
+                        <path d="M 35 90 L 65 90 M 58 86 L 65 90 L 58 94" stroke="#16a34a" stroke-width="3"
                             fill="none" />
-                        <!-- Gravity force arrow (Red pointing down) -->
-                        <path d="M 100 65 L 100 95 M 95 88 L 100 95 L 105 88" stroke="#ef4444" stroke-width="3"
+                        <path d="M 125 90 L 170 90 M 160 84 L 170 90 L 160 96" stroke="#ea580c" stroke-width="3.5"
                             fill="none" />
-                        <!-- Labels -->
-                        <text x="100" y="68" fill="#ffffff" font-size="11" font-weight="bold" font-family="Prompt"
-                            text-anchor="middle">m</text>
-                        <text x="112" y="24" fill="#10b981" font-size="12" font-weight="bold" font-family="sans-serif">B
-                            = ρVg</text>
-                        <text x="112" y="93" fill="#ef4444" font-size="12" font-weight="bold" font-family="sans-serif">W
-                            = mg</text>
+                        <!-- Area Labels -->
+                        <text x="50" y="115" fill="#0369a1" font-size="12" font-weight="bold" font-family="Prompt"
+                            text-anchor="middle">A₁ (ใหญ่)</text>
+                        <text x="140" y="98" fill="#c2410c" font-size="11" font-weight="bold" font-family="Prompt"
+                            text-anchor="middle">A₂ (แคบ)</text>
+                        <text x="50" y="80" fill="#16a34a" font-size="11" font-weight="bold"
+                            font-family="Fira Code">v₁</text>
+                        <text x="145" y="80" fill="#ea580c" font-size="11" font-weight="bold" font-family="Fira Code">v₂
+                            > v₁</text>
                     </svg>
                 </div>
             </div>
@@ -203,8 +258,8 @@
                         1. ทบทวนเนื้อหา <i
                             class="fa-solid fa-arrow-right text-sm text-cyan-500 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all"></i>
                     </h3>
-                    <p class="text-sm text-slate-500 leading-relaxed relative z-10">ศึกษาพฤติกรรมความตึงผิว
-                        แรงหนืดและความหนืดของของเหลวตามแนวทาง สสวท. และการลอยตัวตามหลักของอาร์คิมีดีส</p>
+                    <p class="text-sm text-slate-500 leading-relaxed relative z-10">ศึกษาของไหลอุดมคติ อัตราการไหล
+                        สมการความต่อเนื่อง สมการแบร์นูลลี และปรากฏการณ์ประยุกต์เสมือนจริง</p>
                 </button>
 
                 <button onclick="showSection('practice')"
@@ -221,7 +276,7 @@
                             class="fa-solid fa-arrow-right text-sm text-blue-500 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all"></i>
                     </h3>
                     <p class="text-sm text-slate-500 leading-relaxed relative z-10">ระบบสุ่มโจทย์และโจทย์มาตรฐานเรื่อง
-                        ความตึงผิว ความดัน เครื่องอัดไฮดรอลิก และแรงพยุง</p>
+                        อัตราการไหล สมการความต่อเนื่อง สมการแบร์นูลลี และกฎของตอร์รีเชลลี</p>
                 </button>
 
                 <button onclick="showSection('exam-start')"
@@ -251,123 +306,117 @@
                         <i class="fa-solid fa-lightbulb"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-lg text-white tracking-wide">สรุปสมการสำคัญ [Formulas 17.2 & 17.3]
-                        </h4>
-                        <p class="text-sm text-slate-300">สมบัติของของไหลและของไหลสถิต</p>
+                        <h4 class="font-bold text-lg text-white tracking-wide">สรุปสมการสำคัญ [Formulas 17.4]</h4>
+                        <p class="text-sm text-slate-300">พลศาสตร์ของของไหล (Fluid Dynamics)</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Card 1: Tension/Viscosity -->
+                    <!-- Card 1: Ideal Fluid & Flow Rate -->
                     <div
                         class="bg-black/30 p-4 rounded-xl border border-white/10 hover:border-cyan-500/50 transition flex flex-col justify-between">
                         <div>
                             <div
                                 class="text-cyan-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-wind"></i> 17.2 ความตึงผิวและความหนืด
+                                <i class="fa-solid fa-water"></i> 17.4.1 ของไหลอุดมคติ & อัตราการไหล
                             </div>
-                            <h5 class="font-bold text-sm mb-2 text-slate-100">ความตึงผิว & ความหนืดของของเหลว</h5>
+                            <h5 class="font-bold text-sm mb-2 text-slate-100">อัตราการไหล (Flow Rate : Q)</h5>
                             <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">
-                                แรงดึงของเหลวต่อความยาวเส้นขอบสัมผัส และสมบัติต้านการไหล/ต้านการเคลื่อนที่ตาม สสวท.
+                                ปริมาตรของไหลที่ผ่านพื้นที่หน้าตัดในหนึ่งหน่วยเวลา
                             </p>
                             <div
                                 class="text-[11px] font-mono text-cyan-300 bg-black/40 p-2 rounded text-center border border-white/5 mb-3">
-                                \( \gamma = \frac{F}{L} \quad (F = \gamma L) \quad , \quad F_v = 6\pi\eta r v \)
+                                \( Q = \frac{\Delta V}{\Delta t} = A v \)
                             </div>
-                            <!-- Detailed breakdown of L & variables -->
+                            <!-- Detailed breakdown of ideal fluid properties -->
                             <div
                                 class="bg-cyan-950/40 border border-cyan-500/25 rounded-lg p-2.5 text-[11px] text-slate-200 space-y-2">
                                 <div
                                     class="font-bold text-cyan-300 border-b border-cyan-500/20 pb-1 flex items-center gap-1">
-                                    <i class="fa-solid fa-ruler-horizontal text-xs"></i>
-                                    <span>ความหมายและหน่วยของตัวแปร:</span>
+                                    <i class="fa-solid fa-list-check text-xs"></i>
+                                    <span>สมบัติ 4 ประการของของไหลอุดมคติ:</span>
                                 </div>
-                                <ul class="space-y-1 text-[10.5px] text-slate-300 list-disc pl-4 leading-normal">
-                                    <li><strong>\(\gamma\) (แกมมา):</strong> ความตึงผิวของของเหลว <span class="text-cyan-200/80">(นิวตันต่อเมตร : N/m)</span></li>
-                                    <li><strong>\(F\) (หรือ \(F_s\)):</strong> แรงตึงผิว <span class="text-cyan-200/80">(นิวตัน : N)</span></li>
-                                    <li><strong>\(L\):</strong> ความยาวเส้นขอบที่สัมผัสของเหลว <span class="text-cyan-200/80">(เมตร : m)</span>
-                                        <div class="pl-2 mt-0.5 text-[10px] text-slate-400 space-y-0.5">
-                                            <div>• <em>แผ่นกระจกบาง:</em> \(L = 2w\) (สัมผัส 2 ด้านยาว \(w\))</div>
-                                            <div>• <em>ห่วงวงกลมบาง:</em> \(L = 4\pi R\) (สัมผัส 2 ด้าน นอก+ใน)</div>
-                                            <div>• <em>แผ่นกลมตัน:</em> \(L = 2\pi R\) (สัมผัสขอบนอก)</div>
-                                            <div>• <em>ลวดตรง/เข็ม:</em> \(L = 2l\) | <em>ฟิล์มสบู่:</em> \(L = 2l\)</div>
-                                        </div>
-                                    </li>
-                                </ul>
+                                <ol class="space-y-1 text-[10.5px] text-slate-300 list-decimal pl-4 leading-normal">
+                                    <li><strong>ไหลอย่างสม่ำเสมอ</strong> (Steady flow : \(v\) ณ จุดใดๆ คงตัว)</li>
+                                    <li><strong>ไม่สามารถอัดตัวได้</strong> (Incompressible : \(\rho\) คงตัว)</li>
+                                    <li><strong>ไม่มีความหนืด</strong> (Non-viscous : ไม่มีแรงต้าน)</li>
+                                    <li><strong>ไหลโดยไม่หมุน</strong> (Irrotational flow : ไม่เกิดน้ำวน)</li>
+                                </ol>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 2: Pressure -->
+                    <!-- Card 2: Continuity Equation -->
                     <div
                         class="bg-black/30 p-4 rounded-xl border border-white/10 hover:border-blue-500/50 transition flex flex-col justify-between">
                         <div>
                             <div
                                 class="text-blue-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-weight-hanging"></i> 17.3.1 ความดันในของไหล
+                                <i class="fa-solid fa-arrows-left-right font-bold"></i> 17.4.2 สมการความต่อเนื่อง
                             </div>
-                            <h5 class="font-bold text-sm mb-2 text-slate-100">ความดันเกจ & สัมบูรณ์</h5>
+                            <h5 class="font-bold text-sm mb-2 text-slate-100">การอนุรักษ์มวลของไหล</h5>
                             <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">
-                                ความดันที่เกิดขึ้นเนื่องจากน้ำหนักของเหลวที่ความลึก h
+                                อัตราการไหลในท่อสายเดียวกันจะมีค่าคงตัวเสมอ
                             </p>
                             <div
                                 class="text-[11px] font-mono text-blue-300 bg-black/40 p-2 rounded text-center border border-white/5 mb-3">
-                                \( P_g = \rho g h \quad , \quad P = P_0 + \rho g h \)
+                                \( A_1 v_1 = A_2 v_2 = Q \text{ (const)} \)
                             </div>
-                            <!-- Atmospheric Pressure & Variables Breakdown -->
+                            <!-- Variables Breakdown -->
                             <div
                                 class="bg-blue-950/40 border border-blue-500/25 rounded-lg p-2.5 text-[11px] text-slate-200 space-y-2">
                                 <div
                                     class="font-bold text-blue-300 border-b border-blue-500/20 pb-1 flex items-center gap-1">
-                                    <i class="fa-solid fa-cloud text-xs"></i>
+                                    <i class="fa-solid fa-ruler-horizontal text-xs"></i>
                                     <span>ความหมายและหน่วยของตัวแปร:</span>
                                 </div>
                                 <ul class="space-y-1 text-[10.5px] text-slate-300 list-disc pl-4 leading-normal">
-                                    <li><strong>\(P_g\):</strong> ความดันเกจ <span class="text-blue-200/80">(ปาสคาล : Pa หรือ N/m²)</span></li>
-                                    <li><strong>\(P\):</strong> ความดันสัมบูรณ์ <span class="text-blue-200/80">(ปาสคาล : Pa หรือ N/m²)</span></li>
-                                    <li><strong>\(P_0\) (\(P_{\text{air}}\)):</strong> ความดันบรรยากาศ <span class="text-blue-200/80">(Pa)</span>
-                                        <div class="pl-2 mt-0.5 text-[10px] text-slate-400">
-                                            • <em>1 atm</em> \(\approx 1.013 \times 10^5 \text{ Pa} = 760 \text{ mmHg}\)
-                                        </div>
-                                    </li>
-                                    <li><strong>\(\rho\) (โร):</strong> ความหนาแน่นของไหล <span class="text-blue-200/80">(กิโลกรัมต่อลูกบาศก์เมตร : kg/m³)</span></li>
-                                    <li><strong>\(g\):</strong> ความเร่งเนื่องจากแรงโน้มถ่วง <span class="text-blue-200/80">(เมตรต่อวินาทียกกำลังสอง : m/s²)</span></li>
-                                    <li><strong>\(h\):</strong> ความลึกใต้ผิวน้ำ/ของเหลว <span class="text-blue-200/80">(เมตร : m)</span></li>
+                                    <li><strong>\(A_1, A_2\):</strong> พื้นที่หน้าตัดท่อ <span
+                                            class="text-blue-200/80">(\(\text{m}^2\))</span></li>
+                                    <li><strong>\(v_1, v_2\):</strong> อัตราเร็วของไหล <span
+                                            class="text-blue-200/80">(\(\text{m/s}\))</span></li>
+                                    <li><strong>\(Q\):</strong> อัตราการไหล <span
+                                            class="text-blue-200/80">(\(\text{m}^3/\text{s}\) หรือ
+                                            \(\text{L/s}\))</span></li>
                                 </ul>
+                                <div class="text-[10px] text-slate-400 pt-1 border-t border-blue-500/20">
+                                    • เมื่อพื้นที่หน้าตัดเล็ก ($A$ ลดลง) อัตราเร็ว $v$ จะเพิ่มขึ้น
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 3: Pascal/Archimedes -->
+                    <!-- Card 3: Bernoulli Equation -->
                     <div
                         class="bg-black/30 p-4 rounded-xl border border-white/10 hover:border-emerald-500/50 transition flex flex-col justify-between">
                         <div>
                             <div
                                 class="text-emerald-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-anchor"></i> 17.3 เครื่องอัดไฮดรอลิก & แรงพยุง
+                                <i class="fa-solid fa-bolt"></i> 17.4.3 สมการแบร์นูลลี & การประยุกต์
                             </div>
-                            <h5 class="font-bold text-sm mb-2 text-slate-100">กฎของพาสคัล & แรงพยุง</h5>
-                            <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">แรงยกของลูกสูบ
-                                และแรงพยุงที่มีขนาดเท่ากับน้ำหนักของเหลวถูกแทนที่</p>
+                            <h5 class="font-bold text-sm mb-2 text-slate-100">การอนุรักษ์พลังงานในของไหล</h5>
+                            <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed mb-2">ผลรวมความดัน
+                                พลังงานจลน์ และศักย์ต่อปริมาตรคงตัว</p>
                             <div
-                                class="text-[11px] font-mono text-emerald-300 bg-black/40 p-2 rounded text-center border border-white/5 mb-3">
-                                \( \frac{f}{a} = \frac{F}{A} \quad , \quad B = \rho V_{\text{sub}} g \)
+                                class="text-[10px] font-mono text-emerald-300 bg-black/40 p-2 rounded text-center border border-white/5 mb-3 overflow-x-auto">
+                                \( P_1 + \frac{1}{2}\rho v_1^2 + \rho g y_1 = P_2 + \frac{1}{2}\rho v_2^2 + \rho g y_2
+                                \)
                             </div>
-                            <!-- Variables & Units Breakdown -->
+                            <!-- Applications Breakdown -->
                             <div
                                 class="bg-emerald-950/40 border border-emerald-500/25 rounded-lg p-2.5 text-[11px] text-slate-200 space-y-2">
                                 <div
                                     class="font-bold text-emerald-300 border-b border-emerald-500/20 pb-1 flex items-center gap-1">
-                                    <i class="fa-solid fa-anchor text-xs"></i>
-                                    <span>ความหมายและหน่วยของตัวแปร:</span>
+                                    <i class="fa-solid fa-plane-flight text-xs"></i>
+                                    <span>ปรากฏการณ์และการประยุกต์ใช้งาน:</span>
                                 </div>
                                 <ul class="space-y-1 text-[10.5px] text-slate-300 list-disc pl-4 leading-normal">
-                                    <li><strong>\(f\) / \(F\):</strong> แรงกดลูกสูบเล็ก / แรงยกลูกสูบใหญ่ <span class="text-emerald-200/80">(นิวตัน : N)</span></li>
-                                    <li><strong>\(a\) / \(A\):</strong> พื้นที่ลูกสูบเล็ก / ลูกสูบใหญ่ <span class="text-emerald-200/80">(ตารางเมตร : m²)</span></li>
-                                    <li><strong>\(B\):</strong> แรงพยุงของของไหล <span class="text-emerald-200/80">(นิวตัน : N)</span></li>
-                                    <li><strong>\(\rho\) (โร):</strong> ความหนาแน่นของของไหล <span class="text-emerald-200/80">(kg/m³)</span></li>
-                                    <li><strong>\(V_{\text{sub}}\):</strong> ปริมาตรวัตถุส่วนที่จม <span class="text-emerald-200/80">(ลูกบาศก์เมตร : m³)</span></li>
-                                    <li><strong>\(g\):</strong> ความเร่งโน้มถ่วง <span class="text-emerald-200/80">(เมตรต่อวินาทียกกำลังสอง : m/s²)</span></li>
+                                    <li><strong>กฎของตอร์รีเชลลี:</strong> \( v = \sqrt{2gh} \)
+                                        (อัตราเร็วไหลออกจากรูข้างภาชนะ)</li>
+                                    <li><strong>แรงยกปีกเครื่องบิน:</strong> \( \Delta P =
+                                        \frac{1}{2}\rho(v_{\text{top}}^2 - v_{\text{bottom}}^2) \)</li>
+                                    <li><strong>เครื่องพ่นละอองน้ำ & พายุเปิดหลังคา:</strong> อัตราเร็วสูง
+                                        ความดันสถิตต่ำ</li>
                                 </ul>
                             </div>
                         </div>
@@ -382,9 +431,10 @@
         <section id="sec-review" class="hidden space-y-6 animate-[fadeIn_0.3s_ease-out]">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800">🌊 ทบทวนบทเรียน: สมบัติของของไหลและของไหลสถิต</h2>
+                    <h2 class="text-2xl font-bold text-slate-800">🌊 ทบทวนบทเรียน: พลศาสตร์ของของไหล (Fluid Dynamics)
+                    </h2>
                     <p class="text-sm text-slate-500">ทดลองปรับเปลี่ยนตัวแปรในระบบ Simulator
-                        เพื่อศึกษาพฤติกรรมความตึงผิว ความหนืด และแรงพยุง</p>
+                        เพื่อศึกษาอัตราการไหล สมการความต่อเนื่อง สมการแบร์นูลลี และการประยุกต์ใช้</p>
                 </div>
                 <button onclick="showSection('home')"
                     class="self-start sm:self-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold border border-slate-200 transition flex items-center gap-1.5">
@@ -394,143 +444,115 @@
 
             <!-- Segment Tabs -->
             <div class="flex flex-wrap bg-slate-100 p-1.5 rounded-xl gap-1 max-w-4xl border border-slate-200">
-                <button onclick="switchReviewTab('17-2-tension')" id="btn-tab-17-2-tension"
+                <button onclick="switchReviewTab('17-4-continuity')" id="btn-tab-17-4-continuity"
                     class="flex-1 min-w-[140px] text-center py-2 text-xs md:text-sm font-bold rounded-lg transition-all duration-200 bg-white text-cyan-800 shadow-sm border border-slate-200/50">
-                    1. ความตึงผิวของของเหลว
+                    1. ของไหลอุดมคติและสมการความต่อเนื่อง
                 </button>
-                <button onclick="switchReviewTab('17-2-viscosity')" id="btn-tab-17-2-viscosity"
+                <button onclick="switchReviewTab('17-4-bernoulli')" id="btn-tab-17-4-bernoulli"
                     class="flex-1 min-w-[140px] text-center py-2 text-xs md:text-sm font-bold rounded-lg transition-all duration-200 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50">
-                    2. ความหนืดและอัตราเร็วปลาย
+                    2. สมการแบร์นูลลีและการเปลี่ยนแปลงความดัน
                 </button>
-                <button onclick="switchReviewTab('17-3-buoyancy')" id="btn-tab-17-3-buoyancy"
+                <button onclick="switchReviewTab('17-4-apps')" id="btn-tab-17-4-apps"
                     class="flex-1 min-w-[140px] text-center py-2 text-xs md:text-sm font-bold rounded-lg transition-all duration-200 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50">
-                    3. แรงพยุงและหลักอาร์คิมีดีส
+                    3. การประยุกต์ใช้พลศาสตร์ของของไหล
                 </button>
             </div>
 
-            <!-- TAB 1: ความตึงผิวของของเหลว -->
-            <div id="review-tab-17-2-tension" class="space-y-6">
+            <!-- TAB 1: ของไหลอุดมคติและสมการความต่อเนื่อง -->
+            <div id="review-tab-17-4-continuity" class="space-y-6">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 text-cyan-600">
-                            <i class="fa-solid fa-ring"></i> Simulator:
-                            การวัดสัมประสิทธิ์ความตึงผิวด้วยห่วงวงกลมและคานสมดุล
+                            <i class="fa-solid fa-water"></i> Simulator 1:
+                            การไหลของของไหลอุดมคติและสมการความต่อเนื่อง (\(A_1 v_1 = A_2 v_2\))
                         </h3>
-                        <span id="lbl-tension-state"
-                            class="text-xs px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded">พร้อมทดลอง
-                            (ห่วงสัมผัสผิว)</span>
+                        <span id="lbl-continuity-state"
+                            class="text-xs px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded">กำลังไหลคงตัว
+                            (Steady Flow)</span>
                     </div>
-                    <p class="text-sm text-slate-600 mb-6">
-                        ศึกษาวิธีการหาค่าสัมประสิทธิ์ความตึงผิวของของเหลว (\(\gamma\)) โดยใช้คานสมดุลเลื่อนตุ้มน้ำหนัก
-                        \(W\) เพื่อดึงห่วงวงกลมให้หลุดจากผิวของเหลว
-                        สังเกตแรงตึงผิวที่เหนี่ยวรั้งห่วงและหาจุดวิกฤตที่ฟิล์มของเหลวขาดออกจากกันพอดี
+                    <p class="text-sm text-slate-600 mb-4">
+                        ศึกษาสมบัติของของไหลอุดมคติและกฎการอนุรักษ์มวล ปรับเปลี่ยนพื้นที่หน้าตัดทางเข้า (\(A_1\)) ทางออก
+                        (\(A_2\))
+                        และอัตราเร็วต้น (\(v_1\)) สังเกตการเปลี่ยนแปลงอัตราเร็วของไหลและอัตราการไหลคงตัว (\(Q_1 = Q_2\))
                     </p>
+
+                    <!-- Formula Reference Box for Simulator 1 -->
+                    <div class="sim-formula-box p-4 rounded-2xl mb-6">
+                        <div class="flex items-center gap-2 mb-2.5 sim-formula-title">
+                            <i class="fa-solid fa-square-root-variable"></i> สมการที่เกี่ยวข้องกับ Simulator 1
+                            (Continuity Equations)
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="sim-formula-item flex items-center justify-between gap-2">
+                                <span class="sim-formula-label">สมการความต่อเนื่อง:</span>
+                                <span class="sim-formula-math text-sm md:text-base">\( A_1 v_1 = A_2 v_2 = Q \)</span>
+                            </div>
+                            <div class="sim-formula-item flex items-center justify-between gap-2">
+                                <span class="sim-formula-label">อัตราการไหล (Flow Rate):</span>
+                                <span class="sim-formula-math text-sm md:text-base">\( Q = \frac{\Delta V}{\Delta t} = A
+                                    v \)</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         <!-- Animation Canvas -->
                         <div
-                            class="lg:col-span-7 bg-slate-900 p-6 rounded-2xl flex flex-col justify-center items-center border border-slate-800 shadow-inner relative">
-                            <span class="text-[10px] text-slate-400 font-bold block mb-2"><i
-                                    class="fa-solid fa-eye"></i> ภาพแสดงคานสมดุลและฟิล์มของเหลวเสมือนจริง</span>
-                            <canvas id="tensionCanvas" width="340" height="224"
-                                class="bg-slate-950 border border-slate-800 rounded"></canvas>
-                            <div
-                                class="absolute top-3 left-8 text-[9px] font-mono text-slate-500 bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
-                                ลูกศรแรง: แดง = แรงซ้าย (W), เหลือง = มวลห่วง (w), น้ำเงิน = แรงดึงผิว (Fs)
+                            class="lg:col-span-7 bg-slate-900 p-5 rounded-2xl flex flex-col justify-center items-center border border-slate-800 shadow-inner relative space-y-3">
+                            <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                                <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-eye text-cyan-400"></i>
+                                    ภาพแสดงท่อบีบตัวและอนุภาคการไหลเสมือนจริง
+                                </span>
+                                <span
+                                    class="text-[10px] font-mono text-slate-400 bg-slate-950/80 px-2.5 py-1 rounded-md border border-slate-800 self-start sm:self-auto">
+                                    เส้นสายกระแส: <span class="text-cyan-400">● ฟ้า</span> = อนุภาค | <span
+                                        class="text-emerald-400">v₁</span> | <span class="text-orange-400">v₂</span>
+                                </span>
                             </div>
+                            <canvas id="continuityCanvas" width="560" height="250"
+                                class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-inner"></canvas>
                         </div>
 
                         <!-- Controller Box -->
                         <div
                             class="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4">
                             <div class="space-y-3.5 text-xs">
-                                <div>
-                                    <label
-                                        class="block text-slate-700 font-semibold mb-1.5">ชนิดของของเหลวในบีกเกอร์:</label>
-                                    <select id="tension-fluid-select" onchange="updateTensionParams()"
-                                        class="w-full text-xs font-bold border border-slate-300 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                                        <option value="0.0728" selected>💧 น้ำสะอาด (γ = 0.0728 N/m)</option>
-                                        <option value="0.0640">🍯 กลีเซอรีน (γ = 0.0640 N/m)</option>
-                                        <option value="0.0250">🧼 สารละลายสบู่ (γ = 0.0250 N/m)</option>
-                                        <option value="0.0223">🧪 เอทานอล (γ = 0.0223 N/m)</option>
-                                        <option value="custom">✏️ กำหนดเอง (Custom)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Custom Gamma Slider (hidden by default, shown if custom selected) -->
-                                <div id="tension-custom-fluid-container"
-                                    class="hidden bg-slate-200/40 p-2.5 rounded-lg">
-                                    <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                        <span>ค่าสัมประสิทธิ์ความตึงผิวของเหลว (\(\gamma\)):</span>
-                                        <span id="lbl-tension-custom-val" class="font-mono text-cyan-600">0.0500
-                                            N/m</span>
-                                    </div>
-                                    <input type="range" id="tension-custom-slider" min="0.0100" max="0.1000"
-                                        step="0.0010" value="0.0500" oninput="updateTensionParams()"
-                                        class="w-full h-1.5 bg-slate-300 rounded appearance-none cursor-pointer accent-cyan-600">
-                                </div>
-
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>มวลตุ้มน้ำหนักซ้าย (\(W\)):</span>
-                                            <span id="lbl-tension-m-val" class="text-slate-500 font-mono">10.0 g</span>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>พื้นที่หน้าตัด A₁:</span>
+                                            <span id="lbl-cont-a1-val"
+                                                class="text-cyan-600 font-mono font-bold shrink-0 ml-1">10.0 cm²</span>
                                         </div>
-                                        <input type="range" id="tension-m-slider" min="0.0" max="100.0" step="0.1"
-                                            value="10.0" oninput="updateTensionParams()"
-                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
-                                        <div class="flex gap-1 mt-1 justify-between">
-                                            <button onclick="adjustTensionMass(-1.0)"
-                                                class="px-1 py-0.5 text-[9px] bg-slate-200 hover:bg-slate-300 rounded">-1g</button>
-                                            <button onclick="adjustTensionMass(-0.1)"
-                                                class="px-1 py-0.5 text-[9px] bg-slate-200 hover:bg-slate-300 rounded">-0.1g</button>
-                                            <button onclick="adjustTensionMass(0.1)"
-                                                class="px-1 py-0.5 text-[9px] bg-slate-200 hover:bg-slate-300 rounded">+0.1g</button>
-                                            <button onclick="adjustTensionMass(1.0)"
-                                                class="px-1 py-0.5 text-[9px] bg-slate-200 hover:bg-slate-300 rounded">+1g</button>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>ระยะห่างตุ้มซ้าย (\(x\)):</span>
-                                            <span id="lbl-tension-x-val" class="text-slate-500 font-mono">15.0 cm</span>
-                                        </div>
-                                        <input type="range" id="tension-x-slider" min="0.0" max="30.0" step="0.5"
-                                            value="15.0" oninput="updateTensionParams()"
-                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4 pt-1">
-                                    <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>รัศมีห่วงวงกลม (\(R\)):</span>
-                                            <span id="lbl-tension-r-val" class="text-slate-500 font-mono">2.0 cm</span>
-                                        </div>
-                                        <input type="range" id="tension-r-slider" min="1.0" max="4.0" step="0.1"
-                                            value="2.0" oninput="updateTensionParams()"
+                                        <input type="range" id="cont-a1-slider" min="2.0" max="20.0" step="0.5"
+                                            value="10.0" oninput="updateContinuityParams()"
                                             class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
                                     </div>
                                     <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>มวลห่วงเปล่า (\(m_{\text{ring}}\)):</span>
-                                            <span id="lbl-tension-mring-val" class="text-slate-500 font-mono">10.0
-                                                g</span>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>พื้นที่หน้าตัด A₂:</span>
+                                            <span id="lbl-cont-a2-val"
+                                                class="text-cyan-600 font-mono font-bold shrink-0 ml-1">4.0 cm²</span>
                                         </div>
-                                        <input type="range" id="tension-mring-slider" min="0.0" max="30.0" step="0.5"
-                                            value="10.0" oninput="updateTensionParams()"
+                                        <input type="range" id="cont-a2-slider" min="1.0" max="20.0" step="0.5"
+                                            value="4.0" oninput="updateContinuityParams()"
                                             class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-2 pt-1">
                                     <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>ระยะห่างห่วงขวา (\(y\)):</span>
-                                            <span id="lbl-tension-y-val" class="text-slate-500 font-mono">15.0 cm</span>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>อัตราเร็วทางเข้า v₁:</span>
+                                            <span id="lbl-cont-v1-val"
+                                                class="text-slate-500 font-mono font-bold shrink-0 ml-1">2.0 m/s</span>
                                         </div>
-                                        <input type="range" id="tension-y-slider" min="5.0" max="30.0" step="0.5"
-                                            value="15.0" oninput="updateTensionParams()"
+                                        <input type="range" id="cont-v1-slider" min="0.5" max="6.0" step="0.1"
+                                            value="2.0" oninput="updateContinuityParams()"
                                             class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
                                     </div>
                                 </div>
@@ -539,160 +561,188 @@
                             <!-- Live Calculations Dashboard -->
                             <div class="bg-slate-800 text-white p-3.5 rounded-xl border border-slate-700 shadow-inner">
                                 <span
-                                    class="text-[9px] text-slate-400 block font-bold tracking-wider mb-1.5">ผลวิเคราะห์โมเมนต์และแรงดึงฟิล์ม</span>
+                                    class="text-[9px] text-slate-400 block font-bold tracking-wider mb-1.5">ผลคำนวณอัตราการไหลและอัตราเร็วปลายทาง</span>
                                 <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-mono">
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">โมเมนต์ซ้าย \(\tau_L\):</span>
-                                        <span id="val-tension-taul" class="text-cyan-300">0.0147 N·m</span>
+                                        <span class="text-slate-300 font-sans">อัตราการไหล Q₁:</span>
+                                        <span id="val-cont-q1" class="text-cyan-300 font-bold">2.00 L/s</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">โมเมนต์ขวา \(\tau_R\):</span>
-                                        <span id="val-tension-taur" class="text-cyan-300">0.0147 N·m</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">แรงดึงห่วง \(F_{\text{pull}}\):</span>
-                                        <span id="val-tension-fpull" class="text-white">0.098 N</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">แรงตึงผิว \(F_s\):</span>
-                                        <span id="val-tension-fs" class="text-cyan-300">0.000 N</span>
+                                        <span class="text-slate-300 font-sans">อัตราการไหล Q₂:</span>
+                                        <span id="val-cont-q2" class="text-cyan-300 font-bold">2.00 L/s</span>
                                     </div>
                                     <div class="flex justify-between col-span-2 border-t border-slate-700/50 pt-1 mt-1">
-                                        <span class="text-slate-400">แรงดึงวิกฤตของฟิล์ม (\(F_{\text{max}}\)):</span>
-                                        <span id="val-tension-fmax" class="text-emerald-400">0.0183 N</span>
+                                        <span class="text-slate-300 font-sans">อัตราเร็วทางออก v₂:</span>
+                                        <span id="val-cont-v2" class="text-emerald-400 font-bold">5.00 m/s</span>
                                     </div>
-                                    <div id="val-tension-exp-container"
-                                        class="flex justify-between col-span-2 text-yellow-300 font-bold hidden">
-                                        <span>วัดค่า \(\gamma_{\text{exp}}\) ได้:</span>
-                                        <span id="val-tension-gammanet">-- N/m</span>
+                                    <div class="flex justify-between col-span-2">
+                                        <span class="text-slate-300 font-sans">อัตราส่วนความเร็ว v₂/v₁:</span>
+                                        <span id="val-cont-ratio" class="text-amber-300 font-bold">2.50 เท่า</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <div class="flex gap-2">
-                                    <button onclick="zeroBalanceTension()"
-                                        class="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-scale-balanced"></i> เซตยอดมวลสมดุล (Zero)
-                                    </button>
-                                    <button onclick="touchLiquidTension()"
-                                        class="flex-1 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-water"></i> แตะผิวของเหลว
-                                    </button>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="btn-tension-auto-x" onclick="startAutoSlideX()"
-                                        class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-forward-step"></i> ค่อยๆ เลื่อนตุ้ม x
-                                    </button>
-                                    <button id="btn-tension-auto-w" onclick="startAutoIncreaseW()"
-                                        class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-plus"></i> ค่อยๆ เพิ่มมวล W
-                                    </button>
-                                </div>
+                            <div class="flex gap-2">
+                                <button onclick="resetContinuitySim()"
+                                    class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-rotate-left"></i> รีเซ็ตค่าท่อ
+                                </button>
+                                <button onclick="toggleParticleStream()"
+                                    class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-play"></i> สลับภาพสายกระแส
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 2: ความหนืดและอัตราเร็วปลาย -->
-            <div id="review-tab-17-2-viscosity" class="space-y-6 hidden">
+            <!-- TAB 2: สมการแบร์นูลลีและการเปลี่ยนแปลงความดัน -->
+            <div id="review-tab-17-4-bernoulli" class="space-y-6 hidden">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 text-cyan-600">
-                            <i class="fa-solid fa-circle-nodes"></i> Simulator: การตกของวัตถุทรงกลมภายใต้แรงหนืด
-                            (Stokes' Law)
+                            <i class="fa-solid fa-bolt"></i> Simulator 2:
+                            สมการแบร์นูลลีและการเปลี่ยนแปลงความดันสถิต (\(P + \frac{1}{2}\rho v^2 + \rho g y =
+                            \text{const}\))
                         </h3>
-                        <span id="lbl-viscosity-state"
-                            class="text-xs px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded">พร้อมปล่อย</span>
+                        <span id="lbl-bernoulli-state"
+                            class="text-xs px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded">สมดุลพลังงานคงตัว</span>
                     </div>
-                    <p class="text-sm text-slate-600 mb-6">
-                        สังเกตเวกเตอร์ของแรงทั้งสามที่กระทำต่อทรงกลมโลหะที่ร่วงในของเหลว (แรงโน้มถ่วง แรงพยุง
-                        และแรงหนืด) พร้อมพล็อตกราฟ v-t เข้าสู่ความเร็วปลายคงตัว
+                    <p class="text-sm text-slate-600 mb-4">
+                        ทดลองปรับเปลี่ยนระดับความสูง (\(y_1, y_2\))
+                        และอัตราเร็วของไหลเพื่อวิเคราะห์การแปลงพลังงานระหว่าง
+                        ความดันสถิต (\(P\)), พลังงานจลน์ต่อปริมาตร (\(\frac{1}{2}\rho v^2\)) และพลังงานศักย์ต่อปริมาตร
+                        (\(\rho g y\))
                     </p>
 
+                    <!-- Formula Reference Box for Simulator 2 -->
+                    <div class="sim-formula-box p-4 rounded-2xl mb-6">
+                        <div class="flex items-center gap-2 mb-2.5 sim-formula-title">
+                            <i class="fa-solid fa-square-root-variable"></i> สมการที่เกี่ยวข้องกับ Simulator 2
+                            (Bernoulli's Equation)
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="sim-formula-item flex flex-col justify-center gap-1">
+                                <span class="sim-formula-label">สมการแบร์นูลลีแบบเต็ม:</span>
+                                <span class="sim-formula-math text-xs md:text-sm overflow-x-auto text-center">\( P_1 +
+                                    \frac{1}{2}\rho v_1^2 + \rho g y_1 = P_2 + \frac{1}{2}\rho v_2^2 + \rho g y_2
+                                    \)</span>
+                            </div>
+                            <div class="sim-formula-item flex flex-col justify-center gap-1">
+                                <span class="sim-formula-label">ท่ออยู่ในระดับเดียวกัน (\(y_1 = y_2\)):</span>
+                                <span class="sim-formula-math text-xs md:text-sm text-center">\( P_1 + \frac{1}{2}\rho
+                                    v_1^2 = P_2 + \frac{1}{2}\rho v_2^2 \)</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <!-- Animation Canvas & Graph Box -->
+                        <!-- Animation Canvas -->
                         <div
-                            class="lg:col-span-7 bg-slate-900 p-6 rounded-2xl grid grid-cols-12 gap-4 border border-slate-800 shadow-inner">
-                            <div class="col-span-4 flex flex-col items-center border-r border-slate-800 pr-2">
-                                <span class="text-[10px] text-slate-400 font-bold block mb-2"><i
-                                        class="fa-solid fa-flask"></i> หลอดทดสอบ</span>
-                                <canvas id="viscosityCanvas" width="110" height="210"
-                                    class="bg-slate-950 border border-slate-800 rounded"></canvas>
+                            class="lg:col-span-7 bg-slate-900 p-5 rounded-2xl flex flex-col justify-center items-center border border-slate-800 shadow-inner relative space-y-3">
+                            <div class="w-full flex items-center justify-between px-1">
+                                <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-flask text-cyan-400"></i>
+                                    ภาพแสดงท่อยกระดับและระดับความดันบนหลอดแก้ว
+                                </span>
                             </div>
-                            <div class="col-span-8 flex flex-col justify-between pl-1">
-                                <span class="text-[10px] text-slate-400 font-bold block mb-2"><i
-                                        class="fa-solid fa-chart-line"></i> กราฟอัตราเร็ว - เวลา (v-t Graph)</span>
-                                <canvas id="viscosityGraphCanvas" width="220" height="180"
-                                    class="bg-slate-950 border border-slate-800 rounded"></canvas>
-                                <div class="text-[9px] text-slate-400 text-right mt-1">เส้นปะคือค่าจำกัดความเร็วปลายปลาย
-                                    \( v_t \)</div>
-                            </div>
+                            <canvas id="bernoulliCanvas" width="560" height="250"
+                                class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-inner"></canvas>
                         </div>
 
                         <!-- Controller Box -->
                         <div
                             class="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4">
-                            <div class="space-y-4">
+                            <div class="space-y-3.5 text-xs">
                                 <div>
-                                    <label
-                                        class="block text-xs font-semibold text-slate-700 mb-2">ชนิดของเหลวและค่าความหนืด
-                                        (\( \eta \)):</label>
-                                    <select id="viscosity-fluid-select" onchange="updateViscosityParams()"
-                                        class="w-full text-xs font-bold border border-slate-300 rounded px-2.5 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                                        <option value="1.50" selected>🍯 น้ำผึ้ง (ความหนืดสูง = 1.50 Pa·s)</option>
-                                        <option value="0.29">🌻 น้ำมันพืช (ความหนืดกลาง = 0.29 Pa·s)</option>
-                                        <option value="0.001">💧 น้ำสะอาด (ความหนืดต่ำมาก = 0.001 Pa·s)</option>
+                                    <label class="block text-slate-700 font-semibold mb-1.5">ชนิดของไหล (Fluid
+                                        Selection):</label>
+                                    <select id="bern-fluid-select" onchange="updateBernoulliParams()"
+                                        class="w-full text-xs font-bold border border-slate-300 rounded px-2.5 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                                        <option value="1000" selected>💧 น้ำบริสุทธิ์ (\(\rho = 1000 \text{ kg/m}^3\))
+                                        </option>
+                                        <option value="800">🌻 น้ำมันพืช (\(\rho = 800 \text{ kg/m}^3\))</option>
+                                        <option value="680">⛽ น้ำมันเบนซิน (\(\rho = 680 \text{ kg/m}^3\))</option>
                                     </select>
                                 </div>
 
-                                <div>
-                                    <div class="flex justify-between text-xs font-semibold text-slate-700 mb-2">
-                                        <span>รัศมีของลูกกลมโลหะ (\( r \)):</span>
-                                        <span id="lbl-r-val"
-                                            class="text-cyan-600 font-bold text-xs bg-cyan-100 px-2 py-0.5 rounded">4.0
-                                            mm</span>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-3 pt-1">
+                                    <div>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>ความดันทางเข้า P₁:</span>
+                                            <span id="lbl-bern-p1-val"
+                                                class="text-cyan-600 font-mono font-bold shrink-0 ml-1">200 kPa</span>
+                                        </div>
+                                        <input type="range" id="bern-p1-slider" min="100" max="400" step="5" value="200"
+                                            oninput="updateBernoulliParams()"
+                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
                                     </div>
-                                    <input type="range" id="viscosity-r-slider" min="2.0" max="8.0" step="0.5"
-                                        value="4.0" oninput="updateViscosityParams()"
-                                        class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
+                                    <div>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>อัตราเร็วทางเข้า v₁:</span>
+                                            <span id="lbl-bern-v1-val"
+                                                class="text-slate-500 font-mono font-bold shrink-0 ml-1">2.0 m/s</span>
+                                        </div>
+                                        <input type="range" id="bern-v1-slider" min="0.5" max="6.0" step="0.1"
+                                            value="2.0" oninput="updateBernoulliParams()"
+                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>ความต่างระดับ Δy:</span>
+                                            <span id="lbl-bern-y-val"
+                                                class="text-slate-500 font-mono font-bold shrink-0 ml-1">+2.0 m</span>
+                                        </div>
+                                        <input type="range" id="bern-y-slider" min="-5.0" max="5.0" step="0.5"
+                                            value="2.0" oninput="updateBernoulliParams()"
+                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                                            <span>อัตราส่วนพื้นที่ A₁ / A₂:</span>
+                                            <span id="lbl-bern-ratio-val"
+                                                class="text-slate-500 font-mono font-bold shrink-0 ml-1">2.0 เท่า</span>
+                                        </div>
+                                        <input type="range" id="bern-ratio-slider" min="0.5" max="4.0" step="0.1"
+                                            value="2.0" oninput="updateBernoulliParams()"
+                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Speed output panel -->
-                            <div class="bg-slate-800 text-white p-4 rounded-xl border border-slate-700 shadow-inner">
+                            <!-- Speed & Pressure output panel -->
+                            <div class="bg-slate-800 text-white p-3.5 rounded-xl border border-slate-700 shadow-inner">
                                 <span
-                                    class="text-[10px] text-slate-400 block font-bold tracking-wider mb-2">ฟิสิกส์ของการร่วงความหนืด</span>
-                                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs font-mono">
+                                    class="text-[9px] text-slate-400 block font-bold tracking-wider mb-1.5">ผลคำนวณสมการแบร์นูลลี</span>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-mono">
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">อัตราเร็วขณะนี้:</span>
-                                        <span id="val-viscosity-v" class="font-bold text-cyan-300">0.00 m/s</span>
+                                        <span class="text-slate-300 font-sans">อัตราเร็วทางออก v₂:</span>
+                                        <span id="val-bern-v2" class="text-cyan-300 font-bold">4.00 m/s</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">อัตราเร็วปลาย \( v_t \):</span>
-                                        <span id="val-viscosity-vt" class="font-bold text-cyan-300">0.15 m/s</span>
+                                        <span class="text-slate-300 font-sans">ความดันปลายทาง P₂:</span>
+                                        <span id="val-bern-p2" class="text-emerald-400 font-bold">174.0 kPa</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">แรงหนืดต้าน \( F_v \):</span>
-                                        <span id="val-viscosity-fd" class="font-bold text-slate-300">0.00 N</span>
+                                        <span class="text-slate-300 font-sans">พ.จลน์เข้า ½ρv₁²:</span>
+                                        <span id="val-bern-ek1" class="text-slate-200 font-bold">2.0 kPa</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-slate-400">ระยะเวลาหล่น:</span>
-                                        <span id="val-viscosity-time" class="font-bold text-slate-300">0.00 s</span>
+                                        <span class="text-slate-300 font-sans">พ.จลน์ออก ½ρv₂²:</span>
+                                        <span id="val-bern-ek2" class="text-slate-200 font-bold">8.0 kPa</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex gap-2">
-                                <button id="btn-drop-sphere" onclick="dropSphere()"
-                                    class="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-play"></i> <span>ปล่อยลูกกลมโลหะ</span>
-                                </button>
-                                <button onclick="resetViscositySim()"
-                                    class="px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
-                                    ล้างกราฟ
+                                <button onclick="resetBernoulliSim()"
+                                    class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-rotate-left"></i> รีเซ็ตค่าแบร์นูลลี
                                 </button>
                             </div>
                         </div>
@@ -700,120 +750,63 @@
                 </div>
             </div>
 
-            <!-- TAB 2: แรงพยุงและหลักอาร์คิมีดีส -->
-            <div id="review-tab-17-3-buoyancy" class="hidden space-y-6">
+            <!-- TAB 3: การประยุกต์ใช้พลศาสตร์ของของไหล -->
+            <div id="review-tab-17-4-apps" class="hidden space-y-6">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 text-cyan-600">
-                        <i class="fa-solid fa-chart-line"></i> Simulator: การแทนที่ปริมาตรของเหลวและแรงพยุง
-                    </h3>
-                    <p class="text-sm text-slate-600 mb-6">
-                        ทดลองลากจุ่มบล็อกวัตถุลงน้ำเพื่อคำนวณปริมาตรของเหลวที่ถูกแทนที่
-                        สังเกตการเพิ่มขึ้นของเวกเตอร์แรงพยุงและปริมาณน้ำล้นลงถ้วยตวงวัดปริมาตร
-                    </p>
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 text-cyan-600">
+                            <i class="fa-solid fa-plane-flight"></i> Simulator 3:
+                            การประยุกต์ใช้พลศาสตร์ของของไหลในชีวิตประจำวัน
+                        </h3>
+                        <select id="apps-mode-select" onchange="switchAppsMode()"
+                            class="text-xs font-bold border border-slate-300 rounded px-3 py-1.5 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                            <option value="torricelli" selected>🪣 1. กฎของตอร์รีเชลลี (Torricelli's Law)</option>
+                            <option value="wing">✈️ 2. แรงยกปีกเครื่องบิน (Airplane Wing Lift)</option>
+                            <option value="atomizer">💨 3. เครื่องพ่นละอองน้ำ (Atomizer Spray)</option>
+                        </select>
+                    </div>
+
+                    <!-- Formula Reference Box for Simulator 3 -->
+                    <div id="apps-formula-card" class="sim-formula-box p-4 rounded-2xl mb-6">
+                        <!-- Dynamic formulas injected by app.js -->
+                    </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         <!-- Canvas Box (Visual Lab) -->
                         <div
-                            class="lg:col-span-6 bg-slate-900 p-6 rounded-2xl flex flex-col justify-center items-center border border-slate-800 shadow-inner relative">
-                            <span class="text-[10px] text-slate-400 font-bold block mb-2"><i
-                                    class="fa-solid fa-eye"></i> ภาพแสดงถังน้ำล้นเสมือนจริง</span>
-                            <canvas id="buoyancyCanvas" width="340" height="224"
-                                class="bg-slate-950 border border-slate-800 rounded"></canvas>
-                            <div
-                                class="absolute top-3 left-8 text-[9px] font-mono text-slate-500 bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
-                                ลูกศรแรง: เขียว = แรงพยุง (B), แดง = น้ำหนักวัตถุ (W)
+                            class="lg:col-span-7 bg-slate-900 p-5 rounded-2xl flex flex-col justify-center items-center border border-slate-800 shadow-inner relative space-y-3">
+                            <div class="w-full flex items-center justify-between px-1">
+                                <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-eye text-cyan-400"></i> ภาพแบบจำลองเสมือนจริง
+                                </span>
                             </div>
+                            <canvas id="appsCanvas" width="560" height="250"
+                                class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-inner"></canvas>
                         </div>
 
                         <!-- Controller Box -->
                         <div
-                            class="lg:col-span-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4">
+                            class="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4">
                             <div class="space-y-3.5 text-xs">
-                                <div>
-                                    <label
-                                        class="block text-slate-700 font-semibold mb-1.5">ชนิดของของเหลวในบีกเกอร์:</label>
-                                    <select id="buoyancy-fluid-select" onchange="updateBuoyancyParams()"
-                                        class="w-full text-xs font-bold border border-slate-300 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                                        <option value="1000" selected>💧 น้ำสะอาด (Density = 1000 kg/m³)</option>
-                                        <option value="800">🌻 น้ำมันพืช (Density = 800 kg/m³)</option>
-                                        <option value="1420">🍯 น้ำผึ้งหนืด (Density = 1420 kg/m³)</option>
-                                    </select>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>ความหนาแน่นวัตถุ (\( \rho_{\text{obj}} \)):</span>
-                                            <span id="lbl-rho-val" class="text-slate-500 font-mono">600</span>
-                                        </div>
-                                        <input type="range" id="buoyancy-rho-slider" min="200" max="2000" step="50"
-                                            value="600" oninput="updateBuoyancyParams()"
-                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                                            <span>ปริมาตรวัตถุ (\( V_{\text{obj}} \)):</span>
-                                            <span id="lbl-vol-val" class="text-slate-500 font-mono">2.5 L</span>
-                                        </div>
-                                        <input type="range" id="buoyancy-vol-slider" min="1.0" max="5.0" step="0.2"
-                                            value="2.5" oninput="updateBuoyancyParams()"
-                                            class="w-full h-1.5 bg-slate-200 rounded appearance-none cursor-pointer accent-cyan-600">
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-2 pt-2 border-t border-slate-200/50">
-                                    <input id="chk-free-physics" type="checkbox" checked onchange="toggleFreePhysics()"
-                                        class="accent-cyan-600 cursor-pointer">
-                                    <label for="chk-free-physics"
-                                        class="font-bold text-slate-700 cursor-pointer">ระบบจมลอยเคลื่อนที่อิสระ
-                                        (Physics Dynamic)</label>
-                                </div>
-
-                                <!-- Manual Push (Active only when free physics is off) -->
-                                <div id="manual-submersion-container"
-                                    class="hidden bg-slate-200/50 p-2.5 rounded-lg space-y-1">
-                                    <div class="flex justify-between text-[11px] font-semibold text-slate-700">
-                                        <span>กดน้ำหนักให้จมด้วยตนเอง (Manual Push):</span>
-                                        <span id="lbl-depth-val" class="font-mono text-cyan-600">0%</span>
-                                    </div>
-                                    <input type="range" id="buoyancy-depth-slider" min="0" max="100" value="0"
-                                        oninput="updateBuoyancyParams()"
-                                        class="w-full h-1.5 bg-slate-300 rounded appearance-none cursor-pointer accent-cyan-600">
+                                <div id="apps-control-panel">
+                                    <!-- Dynamic controls injected by app.js based on mode selection -->
                                 </div>
                             </div>
 
-                            <!-- Archimedes Output Panel -->
+                            <!-- Dynamic Output Panel -->
                             <div class="bg-slate-800 text-white p-3.5 rounded-xl border border-slate-700 shadow-inner">
-                                <span
-                                    class="text-[9px] text-slate-400 block font-bold tracking-wider mb-1.5">ฟิสิกส์แรงพยุงและปริมาตรแทนที่</span>
-                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-mono">
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">น้ำหนักวัตถุ W:</span>
-                                        <span id="val-buoyancy-w" class="text-cyan-300">14.7 N</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">แรงพยุงของไหล B:</span>
-                                        <span id="val-buoyancy-b" class="text-cyan-300">14.7 N</span>
-                                    </div>
-                                    <div class="flex justify-between col-span-2">
-                                        <span class="text-slate-400">ปริมาตรส่วนที่จม (\( V_{\text{sub}} \)):</span>
-                                        <span id="val-buoyancy-vsub" class="text-white">1.50 L</span>
-                                    </div>
-                                    <div class="flex justify-between col-span-2 border-t border-slate-700/50 pt-1 mt-1">
-                                        <span class="text-cyan-400 font-bold">สภาวะของวัตถุ:</span>
-                                        <span id="val-buoyancy-net" class="text-cyan-300 font-bold">สมดุลลอยนิ่ง</span>
-                                    </div>
+                                <span class="text-[9px] text-slate-400 block font-bold tracking-wider mb-1.5"
+                                    id="apps-output-title">ผลการวิเคราะห์ทางฟิสิกส์</span>
+                                <div id="apps-output-body"
+                                    class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-mono">
+                                    <!-- Dynamic outputs injected by app.js -->
                                 </div>
                             </div>
 
                             <div class="flex gap-2">
-                                <button onclick="bobBlock()"
+                                <button onclick="resetAppsSim()"
                                     class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-md transition flex justify-center items-center gap-1.5">
-                                    <i class="fa-solid fa-water animate-bounce"></i> กดบล็อกเบาๆ (Bob)
-                                </button>
-                                <button onclick="resetBuoyancySim()"
-                                    class="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
-                                    รีเซ็ตบีกเกอร์
+                                    <i class="fa-solid fa-rotate-left"></i> รีเซ็ตแบบจำลอง
                                 </button>
                             </div>
                         </div>
@@ -828,9 +821,9 @@
         <section id="sec-practice" class="hidden space-y-6 animate-[fadeIn_0.3s_ease-out]">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800">🧠 ตะลุยโจทย์: สมบัติของของไหลและของไหลสถิต</h2>
-                    <p class="text-sm text-slate-500">ระบบสุ่มตัวแปรและโจทย์มาตรฐาน อิงตามหนังสือเรียน สสวท. บทที่ 17.2
-                        & 17.3</p>
+                    <h2 class="text-2xl font-bold text-slate-800">🧠 ตะลุยโจทย์: พลศาสตร์ของของไหล (Fluid Dynamics)</h2>
+                    <p class="text-sm text-slate-500">ระบบสุ่มตัวแปรและโจทย์มาตรฐาน อิงตามหนังสือเรียน สสวท. บทที่ 17.4
+                    </p>
                 </div>
                 <button onclick="showSection('home')"
                     class="self-start sm:self-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold border border-slate-200 transition flex items-center gap-1.5">
@@ -838,60 +831,94 @@
                 </button>
             </div>
 
-            <!-- Mode Selector -->
-            <div id="total-questions-display" class="total-questions-badge">
-                คลังข้อสอบทั้งหมด : <span id="total-count">25</span> ข้อ
+            <!-- Stats Bar -->
+            <div id="total-questions-display" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Stat Card 1: Total Questions -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-cyan-300 transition-all duration-300 flex items-center gap-3.5 relative overflow-hidden">
+                    <div class="w-11 h-11 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center text-lg shrink-0 border border-cyan-100 shadow-inner">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xl md:text-2xl font-extrabold text-slate-800 font-mono tracking-tight leading-none mb-1">
+                            <span id="total-count">25</span> <span class="text-xs font-sans font-semibold text-slate-500">ข้อ</span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-700 truncate">คลังข้อสอบทั้งหมด</div>
+                        <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">บทที่ 17.4 ของไหล</div>
+                    </div>
+                </div>
+
+                <!-- Stat Card 2: Categories -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-300 flex items-center gap-3.5 relative overflow-hidden">
+                    <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg shrink-0 border border-blue-100 shadow-inner">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xl md:text-2xl font-extrabold text-slate-800 font-mono tracking-tight leading-none mb-1">
+                            3 <span class="text-xs font-sans font-semibold text-slate-500">หัวข้อ</span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-700 truncate">หมวดหมู่เนื้อหา</div>
+                        <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">17.4.1 - 17.4.3</div>
+                    </div>
+                </div>
+
+                <!-- Stat Card 3: Modes -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-300 flex items-center gap-3.5 relative overflow-hidden">
+                    <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg shrink-0 border border-emerald-100 shadow-inner">
+                        <i class="fa-solid fa-shuffle"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xl md:text-2xl font-extrabold text-slate-800 font-mono tracking-tight leading-none mb-1">
+                            2 <span class="text-xs font-sans font-semibold text-slate-500">รูปแบบ</span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-700 truncate">รูปแบบการฝึกฝน</div>
+                        <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">ปกติ / สุ่มตัวเลข</div>
+                    </div>
+                </div>
+
+                <!-- Stat Card 4: Solutions -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-300 flex items-center gap-3.5 relative overflow-hidden">
+                    <div class="w-11 h-11 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-lg shrink-0 border border-amber-100 shadow-inner">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xl md:text-2xl font-extrabold text-slate-800 font-mono tracking-tight leading-none mb-1">
+                            100%
+                        </div>
+                        <div class="text-xs font-bold text-slate-700 truncate">เฉลยวิธีทำละเอียด</div>
+                        <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">Step-by-Step + MathJax</div>
+                    </div>
+                </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <button onclick="startPracticeMode('17-2-1')" id="btn-prac-17-2-1"
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button onclick="startPracticeMode('17-4-1')" id="btn-prac-17-4-1"
                     class="p-4 bg-white hover:bg-cyan-50 text-slate-800 rounded-xl border border-slate-200 flex items-center gap-3 transition text-left shadow-sm hover:shadow">
                     <div
-                        class="w-9 h-9 shrink-0 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600 text-xs font-bold">
-                        17.2.1</div>
+                        class="w-10 h-10 shrink-0 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600 text-xs font-bold">
+                        17.4.1</div>
                     <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">ความตึงผิวของเหลว</h4>
-                        <p class="text-[9px] text-slate-500">คำนวณหา \( \gamma = F/L \)</p>
+                        <h4 class="font-bold text-xs whitespace-nowrap">ของไหลอุดมคติและอัตราการไหล</h4>
+                        <p class="text-[10px] text-slate-500">สมบัติ 4 ประการ และคำนวณ \( Q = Av \)</p>
                     </div>
                 </button>
-                <button onclick="startPracticeMode('17-2-2')" id="btn-prac-17-2-2"
+                <button onclick="startPracticeMode('17-4-2')" id="btn-prac-17-4-2"
                     class="p-4 bg-white hover:bg-blue-50 text-slate-800 rounded-xl border border-slate-200 flex items-center gap-3 transition text-left shadow-sm hover:shadow">
                     <div
-                        class="w-9 h-9 shrink-0 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold">
-                        17.2.2</div>
+                        class="w-10 h-10 shrink-0 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold">
+                        17.4.2</div>
                     <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">ความหนืดและแรงหนืด</h4>
-                        <p class="text-[9px] text-slate-500">มโนทัศน์เชิงทฤษฎีตาม สสวท.</p>
+                        <h4 class="font-bold text-xs whitespace-nowrap">สมการความต่อเนื่อง</h4>
+                        <p class="text-[10px] text-slate-500">คำนวณ \( A_1 v_1 = A_2 v_2 \)</p>
                     </div>
                 </button>
-                <button onclick="startPracticeMode('17-3-1')" id="btn-prac-17-3-1"
-                    class="p-4 bg-white hover:bg-indigo-50 text-slate-800 rounded-xl border border-slate-200 flex items-center gap-3 transition text-left shadow-sm hover:shadow">
-                    <div
-                        class="w-9 h-9 shrink-0 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xs font-bold">
-                        17.3.1</div>
-                    <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">ความดันในของไหล</h4>
-                        <p class="text-[9px] text-slate-500">คำนวณ \( P = P_0 + \rho g h \)</p>
-                    </div>
-                </button>
-                <button onclick="startPracticeMode('17-3-2')" id="btn-prac-17-3-2"
-                    class="p-4 bg-white hover:bg-orange-50 text-slate-800 rounded-xl border border-slate-200 flex items-center gap-3 transition text-left shadow-sm hover:shadow">
-                    <div
-                        class="w-9 h-9 shrink-0 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 text-xs font-bold">
-                        17.3.2</div>
-                    <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">เครื่องอัดไฮดรอลิก</h4>
-                        <p class="text-[9px] text-slate-500">กฎของพาสคัล \( f/a = F/A \)</p>
-                    </div>
-                </button>
-                <button onclick="startPracticeMode('17-3-3')" id="btn-prac-17-3-3"
+                <button onclick="startPracticeMode('17-4-3')" id="btn-prac-17-4-3"
                     class="p-4 bg-white hover:bg-emerald-50 text-slate-800 rounded-xl border border-slate-200 flex items-center gap-3 transition text-left shadow-sm hover:shadow">
                     <div
-                        class="w-9 h-9 shrink-0 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-sm font-bold">
-                        <i class="fa-solid fa-anchor"></i>
-                    </div>
+                        class="w-10 h-10 shrink-0 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xs font-bold">
+                        17.4.3</div>
                     <div>
-                        <h4 class="font-bold text-xs whitespace-nowrap">แรงพยุงของไหล</h4>
-                        <p class="text-[9px] text-slate-500">หลักอาร์คิมีดีส \( B = \rho V g \)</p>
+                        <h4 class="font-bold text-xs whitespace-nowrap">สมการแบร์นูลลีและการประยุกต์</h4>
+                        <p class="text-[10px] text-slate-500">คำนวณแบร์นูลลี, ตอร์รีเชลลี, และปีกเครื่องบิน</p>
                     </div>
                 </button>
             </div>
@@ -931,7 +958,7 @@
 
                 <!-- User Answer Form -->
                 <div class="space-y-4 max-w-2xl mx-auto">
-                    <h4 class="font-bold text-sm text-slate-700 text-center mb-4">✍ ️ระบุคำตอบของคุณ</h4>
+                    <h4 class="font-bold text-sm text-slate-700 text-center mb-4">✍️ ระบุคำตอบของคุณ</h4>
 
                     <!-- Choice Zone -->
                     <div id="prac-choice-zone" class="grid grid-cols-1 gap-3 hidden"></div>
@@ -989,7 +1016,7 @@
                         <i class="fa-solid fa-file-signature"></i>
                     </div>
                     <h2 class="text-2xl font-bold text-slate-800 mt-4">ทดสอบเก็บคะแนน ม.6</h2>
-                    <p class="text-sm text-slate-500">บทที่ 17.2 & 17.3 สมบัติของของไหลและของไหลสถิต</p>
+                    <p class="text-sm text-slate-500">บทที่ 17.4 พลศาสตร์ของของไหล (Fluid Dynamics)</p>
                 </div>
 
                 <div
@@ -999,8 +1026,10 @@
                     </h4>
                     <ul class="list-disc pl-5 space-y-1.5 text-xs md:text-sm font-medium">
                         <li>มีข้อสอบทั้งหมด <strong>5 ข้อ</strong> ข้อละ 2 คะแนน (คะแนนเต็ม 10 คะแนน)</li>
-                        <li>ขอบเขตเนื้อหา: ความตึงผิว, ความหนืด, ความดัน, กฎพาสคัล, และแรงพยุง</li>
+                        <li>ขอบเขตเนื้อหา: ของไหลอุดมคติ, อัตราการไหล, สมการความต่อเนื่อง, สมการแบร์นูลลี,
+                            กฎของตอร์รีเชลลี และการประยุกต์ใช้</li>
                         <li>มีระยะเวลาจำกัดในการทำข้อสอบ <strong>15 นาที</strong></li>
+                        <li>การตอบคำถามประเภทคำนวณตัวเลข ให้ป้อนคำตอบเป็นทศนิยมไม่เกิน <strong>2 ตำแหน่ง</strong></li>
                         <li><strong>ห้ามรีเฟรชหน้าจอหรือสลับแท็บ</strong> มิฉะนั้นจะถูกล็อคส่งคำตอบอัตโนมัติ</li>
                     </ul>
                 </div>
@@ -1096,8 +1125,7 @@
                         class="bg-cyan-100 text-cyan-700 border border-cyan-200 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest inline-block mb-2">
                         ผลการประเมินคะแนน
                     </span>
-                    <h2 class="text-3xl font-extrabold text-slate-800">ผลสอบ ของไหลและของไหลสถิต \( (17.2 - 17.3) \)
-                    </h2>
+                    <h2 class="text-3xl font-extrabold text-slate-800">ผลสอบ พลศาสตร์ของของไหล \( (17.4) \)</h2>
                     <p class="text-slate-500">ระบบได้ประเมินผลคะแนนของคุณและจัดเก็บประวัติเรียบร้อยแล้ว</p>
                 </div>
 
@@ -1248,7 +1276,7 @@
                 <span class="text-cyan-400 font-bold">DEV BADGE</span> : นายนพพร สมบูรณ์ชัย
             </div>
         </div>
-        <p class="text-white/40 text-[10px] md:text-xs">© 2026 Interactive Physics Learning Portal </p>
+        <p class="text-white/40 text-[10px] md:text-xs">© 2026 Interactive Physics Learning Portal</p>
     </footer>
 
     <!-- ==================================================== -->

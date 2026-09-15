@@ -200,11 +200,11 @@
                     </div>
                 </div>
 
-                <!-- Hero Graphic (Venturi Pipe & Fluid Streamlines Animation) -->
+                <!-- Hero Graphic (Fluid Flow & Streamlines Animation) -->
                 <div class="w-full md:w-72 flex justify-center relative z-10">
                     <svg class="w-64 h-56 drop-shadow-xl" viewBox="0 0 240 180" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
-                        <!-- Background Venturi Pipe Outline -->
+                        <!-- Background Pipe Outline -->
                         <path
                             d="M 20 40 L 80 40 L 120 70 L 160 70 L 200 40 L 220 40 L 220 140 L 200 140 L 160 110 L 120 110 L 80 140 L 20 140 Z"
                             fill="#f0f9ff" stroke="#0284c7" stroke-width="4" stroke-linejoin="round" />
@@ -1026,11 +1026,10 @@
                     </h4>
                     <ul class="list-disc pl-5 space-y-1.5 text-xs md:text-sm font-medium">
                         <li>มีข้อสอบทั้งหมด <strong>5 ข้อ</strong> ข้อละ 2 คะแนน (คะแนนเต็ม 10 คะแนน)</li>
-                        <li>ขอบเขตเนื้อหา: ของไหลอุดมคติ, อัตราการไหล, สมการความต่อเนื่อง, สมการแบร์นูลลี,
-                            กฎของตอร์รีเชลลี และการประยุกต์ใช้</li>
+                        <li>ขอบเขตเนื้อหา: <strong>1. ของไหลอุดมคติ (อธิบายคุณสมบัติ), 2. สมการความต่อเนื่อง และ 3. สมการแบร์นูลลี</strong> เท่านั้น</li>
                         <li>มีระยะเวลาจำกัดในการทำข้อสอบ <strong>15 นาที</strong></li>
-                        <li>การตอบคำถามประเภทคำนวณตัวเลข ให้ป้อนคำตอบเป็นทศนิยมไม่เกิน <strong>2 ตำแหน่ง</strong></li>
-                        <li><strong>ห้ามรีเฟรชหน้าจอหรือสลับแท็บ</strong> มิฉะนั้นจะถูกล็อคส่งคำตอบอัตโนมัติ</li>
+                        <li>การตอบคำถามประเภทคำนวณตัวเลข ให้ป้อนคำตอบเป็นจำนวนเต็มหรือทศนิยมตามที่โจทย์ระบุ</li>
+                        <li><strong>ระบบตรวจจับความโปร่งใส</strong>: แจ้งเตือนเมื่อสลับแท็บ/ออกจากหน้าจอ และบันทึกประวัติการสอบไว้ในเครื่อง</li>
                     </ul>
                 </div>
 
@@ -1170,6 +1169,34 @@
                     </div>
                 </div>
 
+                <!-- Cheat / Caution Summary Alert (Hidden by default) -->
+                <div id="exam-cheat-summary-card" class="hidden p-5 rounded-2xl bg-red-50/90 border-2 border-red-300 text-red-900 mb-8 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-red-200 pb-2.5">
+                        <div class="flex items-center gap-2.5 font-bold text-base text-red-700">
+                            <i class="fa-solid fa-triangle-exclamation text-xl text-red-600 animate-pulse"></i>
+                            <span>บันทึกพฤติกรรมที่ต้องระวังระหว่างสอบ</span>
+                        </div>
+                        <span class="text-[11px] font-bold bg-red-200/80 text-red-800 px-2.5 py-0.5 rounded-full">บันทึกเฉพาะในเครื่อง</span>
+                    </div>
+                    <p class="text-xs text-red-700 leading-relaxed font-medium">
+                        ระบบได้บันทึกประวัติการออกจากหน้าต่างสอบหรือการรีเฟรชไว้สำหรับการประเมินความน่าเชื่อถือและความโปร่งใสในการทดสอบ
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div class="bg-white/90 p-3.5 rounded-xl border border-red-200 flex items-center justify-between shadow-xs">
+                            <span class="text-xs text-slate-700 font-semibold flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-right-arrow-left text-red-500"></i> สลับหน้าต่าง / แท็บ:
+                            </span>
+                            <span id="lbl-res-tab-switches" class="font-bold text-red-600 text-sm">0 ครั้ง</span>
+                        </div>
+                        <div class="bg-white/90 p-3.5 rounded-xl border border-red-200 flex items-center justify-between shadow-xs">
+                            <span class="text-xs text-slate-700 font-semibold flex items-center gap-2">
+                                <i class="fa-solid fa-rotate text-red-500"></i> รีเฟรชหน้าต่างสอบ:
+                            </span>
+                            <span id="lbl-res-refreshes" class="font-bold text-red-600 text-sm">0 ครั้ง</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="lbl-res-badge-feedback"
                     class="text-center p-4 rounded-xl mb-8 border border-slate-200 bg-slate-50 text-sm">
                     <!-- Feedback message injected by JS -->
@@ -1264,6 +1291,22 @@
                     ยืนยันส่งข้อสอบ
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Warning Banner (Anti-Cheat Notification) -->
+    <div id="floating-cheat-banner"
+        class="fixed top-5 right-5 z-[9999] max-w-sm w-[calc(100%-2.5rem)] sm:w-96 bg-red-600 text-white p-4 rounded-2xl shadow-2xl flex items-start gap-3 border border-red-400 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
+        <div class="w-10 h-10 rounded-xl bg-red-700/80 flex items-center justify-center shrink-0 text-xl text-white shadow-inner">
+            <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm tracking-wide text-white flex items-center gap-1.5">
+                แจ้งเตือนตรวจพบการสลับหน้าจอ
+            </h4>
+            <p id="floating-cheat-msg" class="text-xs text-red-100 mt-1 leading-relaxed">
+                ตรวจพบการสลับแท็บ (ครั้งที่ 1) - กรุณาทำข้อสอบในหน้านี้อย่างต่อเนื่อง
+            </p>
         </div>
     </div>
 

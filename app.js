@@ -164,8 +164,77 @@ let examExitGuardEnabled = false;
 let examIsActive = false;
 let examSubmissionInProgress = false;
 
+let examCheatStats = {
+    tabSwitches: 0,
+    refreshes: 0
+};
+let lastCheatEventTime = 0;
+let cheatBannerTimeout = null;
+
 const EXAM_STATE_KEY = 'fluids_17_4_exam_state';
 const HISTORY_KEY = 'fluids_17_4_question_history';
+
+function showFloatingCheatBanner(message) {
+    const banner = document.getElementById('floating-cheat-banner');
+    const msgEl = document.getElementById('floating-cheat-msg');
+    if (!banner || !msgEl) return;
+
+    msgEl.innerText = message;
+    clearTimeout(cheatBannerTimeout);
+
+    banner.classList.remove('pointer-events-none', '-translate-y-8', 'opacity-0');
+    banner.classList.add('translate-y-0', 'opacity-100');
+
+    cheatBannerTimeout = setTimeout(() => {
+        banner.classList.remove('translate-y-0', 'opacity-100');
+        banner.classList.add('-translate-y-8', 'opacity-0', 'pointer-events-none');
+    }, 3500);
+}
+
+function handleCheatDetection(eventType) {
+    if (!examIsActive) return;
+    const now = Date.now();
+    if (now - lastCheatEventTime < 500) return; // 500ms debounce
+    lastCheatEventTime = now;
+
+    examCheatStats.tabSwitches = (examCheatStats.tabSwitches || 0) + 1;
+    showFloatingCheatBanner(`ตรวจพบการสลับแท็บ (ครั้งที่ ${examCheatStats.tabSwitches})`);
+    debouncedSaveExamState();
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            handleCheatDetection('visibilitychange');
+        }
+    });
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('blur', () => {
+        handleCheatDetection('blur');
+    });
+}
+
+function saveExamStateToStorage() {
+    if (!examIsActive) return;
+    try {
+        const answers = getExamAnswers();
+        const state = {
+            examQuestions: currentExamQuestions,
+            studentInfo: examStudentInfo,
+            examStartTimestamp,
+            examDeadlineTimestamp,
+            examDurationSeconds,
+            cheatStats: examCheatStats,
+            answers: answers
+        };
+        localStorage.setItem(EXAM_STATE_KEY, JSON.stringify(state));
+    } catch (e) {
+        console.error("Failed to save exam state to localStorage:", e);
+    }
+}
+const debouncedSaveExamState = debounce(saveExamStateToStorage, 250);
 
 function getHistory() {
     if (typeof window === 'undefined') return [];
@@ -968,36 +1037,41 @@ const QUESTION_TEMPLATES = [
         title: 'อัตราการไหลผ่านท่อประปา',
         inputs: [{ label: 'อัตราการไหล \\( Q \\) \\( (\\text{L/s}) \\):' }],
         text: (p) => {
-            const r_cm = cleanNum(p.r_cm, 2);
-            const v_base = cleanNum(p.v_base, 2);
-            const offset_v = cleanNum(p.r * 0.1, 2);
-            const v = cleanNum(p.v, 2);
-            return `น้ำไหลผ่านท่อทรงกลมที่มีรัศมีพื้นที่หน้าตัด \\( ${r_cm} \\text{ cm} \\) ด้วยอัตราเร็วคงตัว \\( ${p.r ? `(${v_base} + \ ${offset_v})` : v} \\text{ m/s} \\) จงคำนวณหาอัตราการไหลของน้ำผ่านท่อนั้นในหน่วยลิตรต่อวินาที (L/s)`;
+            return `น้ำไหลผ่านท่อส่งน้ำทรงกระบอกที่มีพื้นที่หน้าตัด \\( A = ${p.area_cm2} \\text{ cm}^2 \\) ด้วยอัตราเร็วคงตัว \\( v = ${p.v} \\text{ m/s} \\) จงคำนวณหาอัตราการไหลของน้ำผ่านท่อในหน่วยลิตรต่อวินาที (L/s)`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const r_cm = seed ? getSeededRandomBase('17_4_1_q_r', seed, 2.0, 8.0, 0.5) : 5.0;
-            const v_base = seed ? getSeededRandomBase('17_4_1_q_v', seed, 1.0, 4.0, 0.2) : 2.0;
-            const v = seed ? parseFloat((v_base + offset * 0.1).toFixed(2)) : 2.0;
+            const cleanCombos = [
+                { area_cm2: 20, v: 5 },
+                { area_cm2: 25, v: 4 },
+                { area_cm2: 25, v: 8 },
+                { area_cm2: 40, v: 5 },
+                { area_cm2: 50, v: 2 },
+                { area_cm2: 50, v: 4 },
+                { area_cm2: 50, v: 5 },
+                { area_cm2: 100, v: 2 },
+                { area_cm2: 100, v: 4 },
+                { area_cm2: 10, v: 5 }
+            ];
+            const rng = new SeededRNG(`17_4_1_flow_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { area_cm2, v } = item;
 
-            const r_m = r_cm / 100;
-            const area = Math.PI * Math.pow(r_m, 2);
-            const q_m3ps = area * v;
-            const q_lps = q_m3ps * 1000;
+            const area_m2 = area_cm2 * 1e-4;
+            const q_m3ps = area_m2 * v;
+            const q_lps = Math.round(q_m3ps * 1000); // Clean integer
 
             return {
-                params: { r_cm, v, v_base, r: offset },
-                answers: [q_lps.toFixed(2)],
+                params: { area_cm2, v },
+                answers: [q_lps.toString()],
                 answersRaw: [q_lps],
                 explanation: () => `
-          จากสูตรอัตราการไหล: \\( Q = A \\cdot v = (\\pi r^2) \\cdot v \\)<br>
-          - รัศมี \\( r = ${r_cm.toFixed(2)} \\text{ cm} = ${r_m.toFixed(4)} \\text{ m} \\)<br>
-          - พื้นที่หน้าตัด \\( A = \\pi \\cdot (${r_m.toFixed(4)})^2 = ${area.toFixed(4)} \\text{ m}^2 \\)<br>
-          - อัตราเร็ว \\( v = ${v.toFixed(2)} \\text{ m/s} \\)<br>
-          แทนค่าคำนวณ:<br>
-          \\( Q = ${area.toFixed(4)} \\cdot ${v.toFixed(2)} = ${q_m3ps.toFixed(4)} \\text{ m}^3/\\text{s} \\)<br>
-          แปลงเป็นหน่วยลิตรต่อวินาที (คูณ 1000):<br>
-          \\( Q = ${q_lps.toFixed(2)} \\text{ L/s} \\)
+          จากสูตรอัตราการไหล: \\( Q = A \\cdot v \\)<br>
+          - พื้นที่หน้าตัด \\( A = ${area_cm2} \\text{ cm}^2 = ${area_cm2} \\times 10^{-4} \\text{ m}^2 \\)<br>
+          - อัตราเร็วของน้ำ \\( v = ${v} \\text{ m/s} \\)<br>
+          แทนค่าคำนวณหาอัตราการไหล:<br>
+          \\( Q = (${area_cm2} \\times 10^{-4} \\text{ m}^2) \\cdot (${v} \\text{ m/s}) = ${(area_m2 * v).toFixed(4)} \\text{ m}^3/\\text{s} \\)<br>
+          แปลงเป็นหน่วยลิตรต่อวินาที (\\(1 \\text{ m}^3 = 1,000 \\text{ L}\\)):<br>
+          \\( Q = ${(area_m2 * v).toFixed(4)} \\times 1000 = ${q_lps} \\text{ L/s} \\)
         `
             };
         }
@@ -1007,31 +1081,38 @@ const QUESTION_TEMPLATES = [
         title: 'ปริมาตรน้ำที่ไหลออกจากก๊อกน้ำ',
         inputs: [{ label: 'ปริมาตรน้ำรวม \\( (\\text{m}^3) \\):' }],
         text: (p) => {
-            const a = cleanNum(p.area_cm2, 2);
-            const v_base = cleanNum(p.v_base, 2);
-            const offset_v = cleanNum(p.r * 0.2, 2);
-            const v = cleanNum(p.v, 2);
-            return `ก๊อกน้ำฉีดรดน้ำต้นไม้มีพื้นที่หน้าตัด \\( ${a} \\text{ cm}^2 \\) ปล่อยให้น้ำไหลด้วยอัตราเร็วคงที่ \\( ${p.r ? `(${v_base} + \ ${offset_v})` : v} \\text{ m/s} \\) เปิดทิ้งไว้เป็นเวลา \\( ${p.time_min} \\text{ นาที} \\) จงหาปริมาตรน้ำทั้งหมดที่ไหลออกมาในหน่วยลูกบาศก์เมตร (m³)`;
+            return `ก๊อกน้ำส่งน้ำมีพื้นที่หน้าตัด \\( ${p.area_cm2} \\text{ cm}^2 \\) ปล่อยให้น้ำไหลด้วยอัตราเร็วคงตัว \\( ${p.v} \\text{ m/s} \\) เปิดทิ้งไว้เป็นเวลา \\( ${p.time_min} \\text{ นาที} \\) จงหาปริมาตรน้ำทั้งหมดที่ไหลออกมาในหน่วยลูกบาศก์เมตร (m³)`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const area_cm2 = seed ? getSeededRandomBase('17_4_1_vol_a', seed, 2.0, 10.0, 1.0) : 4.0;
-            const v_base = seed ? getSeededRandomBase('17_4_1_vol_v', seed, 1.5, 3.5, 0.5) : 2.0;
-            const v = seed ? parseFloat((v_base + offset * 0.2).toFixed(2)) : 2.0;
-            const time_min = seed ? getSeededRandomBase('17_4_1_vol_t', seed, 5, 20, 5) : 10;
+            const cleanCombos = [
+                { area_cm2: 50, v: 4, time_min: 10 },
+                { area_cm2: 50, v: 2, time_min: 10 },
+                { area_cm2: 25, v: 4, time_min: 10 },
+                { area_cm2: 25, v: 4, time_min: 20 },
+                { area_cm2: 20, v: 5, time_min: 15 },
+                { area_cm2: 20, v: 5, time_min: 10 },
+                { area_cm2: 40, v: 5, time_min: 10 },
+                { area_cm2: 50, v: 5, time_min: 8 },
+                { area_cm2: 50, v: 4, time_min: 15 },
+                { area_cm2: 25, v: 2, time_min: 20 }
+            ];
+            const rng = new SeededRNG(`17_4_1_vol_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { area_cm2, v, time_min } = item;
 
             const area_m2 = area_cm2 * 1e-4;
             const time_sec = time_min * 60;
             const q = area_m2 * v;
-            const vol = q * time_sec;
+            const vol = Math.round(q * time_sec); // Clean integer
 
             return {
-                params: { area_cm2, v, time_min, v_base, r: offset },
-                answers: [vol.toFixed(2)],
+                params: { area_cm2, v, time_min },
+                answers: [vol.toString()],
                 answersRaw: [vol],
                 explanation: () => `
-          1. คำนวณอัตราการไหล \\( Q = A \\cdot v = (${area_cm2.toFixed(2)} \\times 10^{-4} \\text{ m}^2) \\cdot (${v.toFixed(2)} \\text{ m/s}) = ${q.toFixed(4)} \\text{ m}^3/\\text{s} \\)<br>
-          2. ปริมาตรรวม \\( \\Delta V = Q \\cdot \\Delta t = (${q.toFixed(4)}) \\cdot (${time_min} \\cdot 60 \\text{ s}) = ${vol.toFixed(2)} \\text{ m}^3 \\)
+          1. คำนวณอัตราการไหล \\( Q = A \\cdot v = (${area_cm2} \\times 10^{-4} \\text{ m}^2) \\cdot (${v} \\text{ m/s}) = ${q.toFixed(4)} \\text{ m}^3/\\text{s} \\)<br>
+          2. เวลา \\( \\Delta t = ${time_min} \\text{ นาที} = ${time_min} \\times 60 = ${time_sec} \\text{ s} \\)<br>
+          3. ปริมาตรรวม \\( \\Delta V = Q \\cdot \\Delta t = (${q.toFixed(4)} \\text{ m}^3/\\text{s}) \\cdot (${time_sec} \\text{ s}) = ${vol} \\text{ m}^3 \\)
         `
             };
         }
@@ -1066,31 +1147,38 @@ const QUESTION_TEMPLATES = [
         title: 'อัตราเร็วของไหลเมื่อท่อลดขนาด',
         inputs: [{ label: 'อัตราเร็วทางออก \\( v_2 \\) \\( (\\text{m/s}) \\):' }],
         text: (p) => {
-            const a1 = cleanNum(p.a1, 2);
-            const a2 = cleanNum(p.a2, 2);
-            const v1_base = cleanNum(p.v1_base, 2);
-            const offset_v = cleanNum(p.r * 0.1, 2);
-            const v1 = cleanNum(p.v1, 2);
-            return `ท่อส่งน้ำท่อหนึ่งมีพื้นที่หน้าตัดทางเข้า \\( ${a1} \\text{ cm}^2 \\) น้ำไหลด้วยอัตราเร็ว \\( ${p.r ? `(${v1_base} + \ ${offset_v})` : v1} \\text{ m/s} \\) ต่อมาท่อคอดลดขนาดพื้นที่หน้าตัดเหลือเพียง \\( ${a2} \\text{ cm}^2 \\) จงหาอัตราเร็วของน้ำในบริเวณท่อคอดนี้`;
+            return `ท่อส่งน้ำท่อหนึ่งมีพื้นที่หน้าตัดทางเข้า \\( A_1 = ${p.a1} \\text{ cm}^2 \\) น้ำไหลด้วยอัตราเร็วคงตัว \\( v_1 = ${p.v1} \\text{ m/s} \\) ต่อมาท่อคอดลดขนาดพื้นที่หน้าตัดเหลือเพียง \\( A_2 = ${p.a2} \\text{ cm}^2 \\) จงหาอัตราเร็วของน้ำในบริเวณท่อคอดนี้ (\\(v_2\\)) ในหน่วย m/s`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const a1 = seed ? getSeededRandomBase('17_4_2_v2_a1', seed, 12.0, 24.0, 2.0) : 16.0;
-            const a2 = seed ? getSeededRandomBase('17_4_2_v2_a2', seed, 3.0, 8.0, 1.0) : 4.0;
-            const v1_base = seed ? getSeededRandomBase('17_4_2_v2_v1', seed, 1.0, 3.0, 0.2) : 1.5;
-            const v1 = seed ? parseFloat((v1_base + offset * 0.1).toFixed(2)) : 1.5;
+            const cleanCombos = [
+                { a1: 20, a2: 5, v1: 2 },
+                { a1: 16, a2: 4, v1: 3 },
+                { a1: 24, a2: 6, v1: 2 },
+                { a1: 30, a2: 6, v1: 3 },
+                { a1: 15, a2: 5, v1: 4 },
+                { a1: 20, a2: 10, v1: 5 },
+                { a1: 24, a2: 8, v1: 2 },
+                { a1: 18, a2: 6, v1: 5 },
+                { a1: 32, a2: 8, v1: 2 },
+                { a1: 25, a2: 5, v1: 2 }
+            ];
+            const rng = new SeededRNG(`17_4_2_v2_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { a1, a2, v1 } = item;
 
-            const v2 = (a1 * v1) / a2;
+            const ratio = a1 / a2; // clean integer ratio
+            const v2 = Math.round(ratio * v1); // clean integer
 
             return {
-                params: { a1, a2, v1, v1_base, r: offset },
-                answers: [v2.toFixed(2)],
+                params: { a1, a2, v1, ratio },
+                answers: [v2.toString()],
                 answersRaw: [v2],
                 explanation: () => `
           จากสมการความต่อเนื่อง: \\( A_1 v_1 = A_2 v_2 \\)<br>
-          จัดรูปหาอัตราเร็ว \\( v_2 = \\frac{A_1 \\cdot v_1}{A_2} \\)<br>
+          อัตราส่วนพื้นที่หน้าตัด: \\( \\frac{A_1}{A_2} = \\frac{${a1}}{${a2}} = ${ratio} \\)<br>
+          จัดรูปหาอัตราเร็ว \\( v_2 = \\left(\\frac{A_1}{A_2}\\right) \\cdot v_1 \\)<br>
           แทนค่าคำนวณ:<br>
-          \\( v_2 = \\frac{(${a1.toFixed(2)}) \\cdot (${v1.toFixed(2)})}{${a2.toFixed(2)}} = ${v2.toFixed(2)} \\text{ m/s} \\)
+          \\( v_2 = ${ratio} \\cdot ${v1} = ${v2} \\text{ m/s} \\)
         `
             };
         }
@@ -1100,27 +1188,39 @@ const QUESTION_TEMPLATES = [
         title: 'การเปลี่ยนเส้นผ่านศูนย์กลางท่อ',
         inputs: [{ label: 'อัตราเร็วช่วงท่อเล็ก \\( v_2 \\) \\( (\\text{m/s}) \\):' }],
         text: (p) => {
-            const d1 = cleanNum(p.d1, 2);
-            const d2 = cleanNum(p.d2, 2);
-            const v1 = cleanNum(p.v1, 2);
-            return `ท่อทรงกลมเส้นผ่านศูนย์กลาง \\( D_1 = ${d1} \\text{ cm} \\) มีน้ำไหลด้วยอัตราเร็ว \\( ${v1} \\text{ m/s} \\) เชื่อมต่อเข้ากับท่อเส้นผ่านศูนย์กลางลดลงเหลือ \\( D_2 = ${d2} \\text{ cm} \\) จงคำนวณหาอัตราเร็วของน้ำในท่อส่วนที่สอง`;
+            return `ท่อทรงกระบอกเส้นผ่านศูนย์กลาง \\( D_1 = ${p.d1} \\text{ cm} \\) มีน้ำไหลด้วยอัตราเร็วคงตัว \\( v_1 = ${p.v1} \\text{ m/s} \\) เชื่อมต่อเข้ากับท่อที่มีเส้นผ่านศูนย์กลางลดลงเหลือ \\( D_2 = ${p.d2} \\text{ cm} \\) จงคำนวณหาอัตราเร็วของน้ำในท่อส่วนที่สอง (\\(v_2\\)) ในหน่วย m/s`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const d1 = seed ? getSeededRandomBase('17_4_2_d1', seed, 6.0, 12.0, 1.0) : 8.0;
-            const d2 = seed ? getSeededRandomBase('17_4_2_d2', seed, 2.0, 4.0, 1.0) : 4.0;
-            const v1 = seed ? getSeededRandomBase('17_4_2_dv1', seed, 1.0, 3.0, 0.5) : 2.0;
+            const cleanCombos = [
+                { d1: 6, d2: 3, v1: 2 },
+                { d1: 8, d2: 4, v1: 2 },
+                { d1: 10, d2: 5, v1: 3 },
+                { d1: 12, d2: 6, v1: 2 },
+                { d1: 6, d2: 2, v1: 1 },
+                { d1: 8, d2: 4, v1: 3 },
+                { d1: 9, d2: 3, v1: 2 },
+                { d1: 10, d2: 5, v1: 4 },
+                { d1: 12, d2: 6, v1: 3 },
+                { d1: 6, d2: 2, v1: 2 }
+            ];
+            const rng = new SeededRNG(`17_4_2_dia_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { d1, d2, v1 } = item;
 
-            const v2 = v1 * Math.pow(d1 / d2, 2);
+            const ratioD = d1 / d2;
+            const ratioArea = Math.round(Math.pow(ratioD, 2));
+            const v2 = Math.round(v1 * ratioArea);
 
             return {
-                params: { d1, d2, v1, r: offset },
-                answers: [v2.toFixed(2)],
+                params: { d1, d2, v1, ratioD, ratioArea },
+                answers: [v2.toString()],
                 answersRaw: [v2],
                 explanation: () => `
           จากสมการความต่อเนื่อง: \\( A_1 v_1 = A_2 v_2 \\)<br>
           เนื่องจากพื้นที่หน้าตัดวงกลมแปรผันตามเส้นผ่านศูนย์กลางยกกำลังสอง \\( A \\propto D^2 \\):<br>
-          \\( v_2 = v_1 \\cdot \\left( \\frac{D_1}{D_2} \\right)^2 = ${v1.toFixed(2)} \\cdot \\left( \\frac{${d1.toFixed(2)}}{${d2.toFixed(2)}} \\right)^2 = ${v1.toFixed(2)} \\cdot (${(d1 / d2).toFixed(2)})^2 = ${v2.toFixed(2)} \\text{ m/s} \\)
+          \\( \\frac{A_1}{A_2} = \\left( \\frac{D_1}{D_2} \\right)^2 = \\left( \\frac{${d1}}{${d2}} \\right)^2 = (${ratioD})^2 = ${ratioArea} \\)<br>
+          แทนค่าคำนวณอัตราเร็ว \\( v_2 \\):<br>
+          \\( v_2 = v_1 \\cdot \\left( \\frac{D_1}{D_2} \\right)^2 = ${v1} \\cdot ${ratioArea} = ${v2} \\text{ m/s} \\)
         `
             };
         }
@@ -1155,36 +1255,46 @@ const QUESTION_TEMPLATES = [
         title: 'คำนวณความดันในท่อตามสมการแบร์นูลลี',
         inputs: [{ label: 'ความดัน ณ ท่อส่วนคอด \\( P_2 \\) \\( (\\text{kPa}) \\):' }],
         text: (p) => {
-            const p1 = cleanNum(p.p1_kpa, 2);
-            const v1 = cleanNum(p.v1, 2);
-            const v2_base = cleanNum(p.v2_base, 2);
-            const offset_v = cleanNum(p.r * 0.5, 2);
-            const v2 = cleanNum(p.v2, 2);
-            return `น้ำความหนาแน่น \\( 1000 \\text{ kg/m}^3 \\) ไหลในท่อแนวราบ บริเวณแรกพื้นที่หน้าตัดใหญ่มีความดันเกจ \\( ${p1} \\text{ kPa} \\) อัตราเร็ว \\( ${v1} \\text{ m/s} \\) ต่อมาท่อคอดลงทำให้อัตราเร็วเพิ่มขึ้นเป็น \\( ${p.r ? `(${v2_base} + \ ${offset_v})` : v2} \\text{ m/s} \\) จงหาความดันเกจ ณ บริเวณท่อคอดนี้ในหน่วย kPa`;
+            return `น้ำความหนาแน่น \\( 1000 \\text{ kg/m}^3 \\) ไหลในท่อแนวราบ บริเวณแรกพื้นที่หน้าตัดใหญ่มีความดันเกจ \\( P_1 = ${p.p1_kpa} \\text{ kPa} \\) และอัตราเร็ว \\( v_1 = ${p.v1} \\text{ m/s} \\) ต่อมาท่อคอดลงทำให้อัตราเร็วเพิ่มขึ้นเป็น \\( v_2 = ${p.v2} \\text{ m/s} \\) จงหาความดันเกจ ณ บริเวณท่อคอดนี้ (\\(P_2\\)) ในหน่วย kPa`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const p1_kpa = seed ? getSeededRandomBase('17_4_3_p1', seed, 150, 300, 10) : 200;
-            const v1 = seed ? getSeededRandomBase('17_4_3_bv1', seed, 1.0, 3.0, 0.5) : 2.0;
-            const v2_base = seed ? getSeededRandomBase('17_4_3_bv2', seed, 4.0, 8.0, 0.5) : 6.0;
-            const v2 = seed ? parseFloat((v2_base + offset * 0.5).toFixed(2)) : 6.0;
+            const cleanCombos = [
+                { p1_kpa: 200, v1: 2, v2: 6 },
+                { p1_kpa: 180, v1: 2, v2: 4 },
+                { p1_kpa: 250, v1: 2, v2: 8 },
+                { p1_kpa: 220, v1: 4, v2: 6 },
+                { p1_kpa: 300, v1: 4, v2: 8 },
+                { p1_kpa: 240, v1: 2, v2: 6 },
+                { p1_kpa: 160, v1: 2, v2: 4 },
+                { p1_kpa: 280, v1: 4, v2: 6 },
+                { p1_kpa: 200, v1: 1, v2: 5 },
+                { p1_kpa: 250, v1: 3, v2: 5 }
+            ];
+            const rng = new SeededRNG(`17_4_3_bern_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { p1_kpa, v1, v2 } = item;
 
             const p1_pa = p1_kpa * 1000;
             const rho = 1000;
-            const p2_pa = p1_pa + 0.5 * rho * (Math.pow(v1, 2) - Math.pow(v2, 2));
-            const p2_kpa = p2_pa / 1000;
+            const v_diff_sq = Math.pow(v1, 2) - Math.pow(v2, 2);
+            const dp_pa = 0.5 * rho * v_diff_sq; // multiple of 1000
+            const dp_kpa = Math.round(dp_pa / 1000);
+            const p2_kpa = p1_kpa + dp_kpa; // clean integer
+            const p2_pa = p2_kpa * 1000;
 
             return {
-                params: { p1_kpa, v1, v2, v2_base, r: offset },
-                answers: [p2_kpa.toFixed(2)],
+                params: { p1_kpa, v1, v2, p2_kpa },
+                answers: [p2_kpa.toString()],
                 answersRaw: [p2_kpa],
                 explanation: () => `
-          จากสมการแบร์นูลลีในท่อแนวราบ (\\(y_1 = y_2\\)):<br>
+          จากสมการแบร์นูลลีในท่อแนวราบ (\\(h_1 = h_2\\)):<br>
           \\( P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2 \\)<br>
           \\( P_2 = P_1 + \\frac{1}{2}\\rho (v_1^2 - v_2^2) \\)<br>
           แทนค่า:<br>
-          \\( P_2 = ${p1_pa.toFixed(0)} + \\frac{1}{2}(1000) \\cdot ((${v1.toFixed(2)})^2 - (${v2.toFixed(2)})^2) = ${p1_pa.toFixed(0)} + 500 \\cdot (${(Math.pow(v1, 2) - Math.pow(v2, 2)).toFixed(2)}) = ${p2_pa.toFixed(2)} \\text{ Pa} \\)<br>
-          คิดเป็นหน่วย kPa: \\( P_2 = ${p2_kpa.toFixed(2)} \\text{ kPa} \\)
+          \\( P_2 = ${p1_pa.toLocaleString()} + \\frac{1}{2}(1000) \\cdot (${v1}^2 - ${v2}^2) \\)<br>
+          \\( P_2 = ${p1_pa.toLocaleString()} + 500 \\cdot (${Math.pow(v1, 2)} - ${Math.pow(v2, 2)}) = ${p1_pa.toLocaleString()} + (${dp_pa.toLocaleString()}) = ${p2_pa.toLocaleString()} \\text{ Pa} \\)<br>
+          แปลงเป็นหน่วย kPa (หาร 1,000):<br>
+          \\( P_2 = ${p2_kpa} \\text{ kPa} \\)
         `
             };
         }
@@ -1194,26 +1304,26 @@ const QUESTION_TEMPLATES = [
         title: 'อัตราเร็วของเหลวออกจากรูข้างภาชนะ (กฎของตอร์รีเชลลี)',
         inputs: [{ label: 'อัตราเร็วพุ่งออกจากรู \\( v \\) \\( (\\text{m/s}) \\):' }],
         text: (p) => {
-            const h_base = cleanNum(p.h_base, 2);
-            const offset_h = cleanNum(p.r * 0.2, 2);
-            const h = cleanNum(p.h, 2);
-            return `ถังเก็บน้ำขนาดใหญ่เจาะรูเปิดขนาดเล็กไว้ด้านข้างใต้อยู่ลึกลงมาจากผิวน้ำเป็นระยะทาง \\( ${p.r ? `(${h_base} + \ ${offset_h})` : h} \\text{ m} \\) จงหาอัตราเร็วของน้ำที่พุ่งออกจากรูข้างถัง (กำหนด \\( g = 9.8 \\text{ m/s}^2 \\))`;
+            return `ถังเก็บน้ำขนาดใหญ่เปิดฝาด้านบน มีรูเจาะขนาดเล็กไว้ด้านข้างอยู่ลึกลงมาจากผิวน้ำเป็นระยะทาง \\( h = ${p.h} \\text{ m} \\) จงหาอัตราเร็วของน้ำที่พุ่งออกจากรูข้างถัง (กำหนดให้ความเร่งโน้มถ่วง \\( g = 10 \\text{ m/s}^2 \\))`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const h_base = seed ? getSeededRandomBase('17_4_3_torr_h', seed, 1.0, 5.0, 0.5) : 2.5;
-            const h = seed ? parseFloat((h_base + offset * 0.2).toFixed(2)) : 2.5;
+            // Pick h such that 2 * g * h = 20 * h has a clean perfect square root
+            const cleanHList = [0.8, 1.8, 3.2, 5.0, 7.2, 0.2];
+            const rng = new SeededRNG(`17_4_3_torr_${seed}`);
+            const h = cleanHList[Math.floor(rng.random() * cleanHList.length)];
 
-            const v = Math.sqrt(2 * 9.8 * h);
+            const two_gh = Math.round(2 * 10 * h);
+            const v = Math.round(Math.sqrt(two_gh)); // clean integer
 
             return {
-                params: { h, h_base, r: offset },
-                answers: [v.toFixed(2)],
+                params: { h, v },
+                answers: [v.toString()],
                 answersRaw: [v],
                 explanation: () => `
           จากกฎของตอร์รีเชลลี (Torricelli's Law): \\( v = \\sqrt{2gh} \\)<br>
+          กำหนดให้ \\( g = 10 \\text{ m/s}^2 \\) และระดับความลึก \\( h = ${h} \\text{ m} \\)<br>
           แทนค่าคำนวณ:<br>
-          \\( v = \\sqrt{2 \\cdot 9.8 \\cdot ${h.toFixed(2)}} = \\sqrt{${(2 * 9.8 * h).toFixed(2)}} = ${v.toFixed(2)} \\text{ m/s} \\)
+          \\( v = \\sqrt{2 \\cdot 10 \\cdot ${h}} = \\sqrt{${two_gh}} = ${v} \\text{ m/s} \\)
         `
             };
         }
@@ -1223,32 +1333,43 @@ const QUESTION_TEMPLATES = [
         title: 'แรงยกปีกเครื่องบินตามสมการแบร์นูลลี',
         inputs: [{ label: 'แรงยกบนปีกเครื่องบินรวม \\( (\\text{kN}) \\):' }],
         text: (p) => {
-            const vt = cleanNum(p.vt, 2);
-            const vb = cleanNum(p.vb, 2);
-            const area = cleanNum(p.area, 2);
-            return `เครื่องบินบินด้วยความเร็วคงตัว ขณะบินพบว่าอัตราเร็วของอากาศเหนือปีกเท่ากับ \\( ${vt} \\text{ m/s} \\) และใต้ปีกเท่ากับ \\( ${vb} \\text{ m/s} \\) ถ้าปีกเครื่องบินมีพื้นที่รวม \\( ${area} \\text{ m}^2 \\) และความหนาแน่นอากาศขณะนั้นเท่ากับ \\( 1.2 \\text{ kg/m}^3 \\) จงหาแรงยกที่กระทำต่อปีกเครื่องบินในหน่วยกิโลนิวตัน (kN)`;
+            return `เครื่องบินบินในแนวระดับด้วยความเร็วคงตัว ขณะบินพบว่าอัตราเร็วของอากาศเหนือปีกเท่ากับ \\( v_{\\text{top}} = ${p.vt} \\text{ m/s} \\) และใต้ปีกเท่ากับ \\( v_{\\text{bottom}} = ${p.vb} \\text{ m/s} \\) ถ้าปีกเครื่องบินมีพื้นที่รวม \\( A = ${p.area} \\text{ m}^2 \\) และความหนาแน่นอากาศขณะนั้นเท่ากับ \\( 1.2 \\text{ kg/m}^3 \\) จงหาแรงยกที่กระทำต่อปีกเครื่องบินในหน่วยกิโลนิวตัน (kN)`;
         },
         generate: (seed) => {
-            const offset = getOffsetFromR(seed);
-            const vt = seed ? getSeededRandomBase('17_4_3_wing_vt', seed, 60, 100, 5) : 80;
-            const vb = seed ? getSeededRandomBase('17_4_3_wing_vb', seed, 40, 60, 5) : 50;
-            const area = seed ? getSeededRandomBase('17_4_3_wing_a', seed, 20, 50, 5) : 30;
+            const cleanCombos = [
+                { vt: 100, vb: 80, area: 50 },
+                { vt: 90, vb: 70, area: 25 },
+                { vt: 80, vb: 60, area: 50 },
+                { vt: 100, vb: 60, area: 25 },
+                { vt: 110, vb: 90, area: 50 },
+                { vt: 120, vb: 80, area: 50 },
+                { vt: 100, vb: 80, area: 25 },
+                { vt: 70, vb: 50, area: 50 },
+                { vt: 120, vb: 100, area: 50 },
+                { vt: 110, vb: 70, area: 25 }
+            ];
+            const rng = new SeededRNG(`17_4_3_wing_${seed}`);
+            const item = cleanCombos[Math.floor(rng.random() * cleanCombos.length)];
+            const { vt, vb, area } = item;
 
             const rho = 1.2;
-            const dp = 0.5 * rho * (Math.pow(vt, 2) - Math.pow(vb, 2));
-            const force_n = dp * area;
-            const force_kn = force_n / 1000;
+            const v_diff = Math.pow(vt, 2) - Math.pow(vb, 2);
+            const dp = Math.round(0.5 * rho * v_diff);
+            const force_n = Math.round(dp * area);
+            const force_kn = Math.round(force_n / 1000); // Clean integer
 
             return {
-                params: { vt, vb, area, r: offset },
-                answers: [force_kn.toFixed(2)],
+                params: { vt, vb, area, force_kn },
+                answers: [force_kn.toString()],
                 answersRaw: [force_kn],
                 explanation: () => `
-          1. คำนวณความต่างความดันระหว่างใต้ปีกและเหนือปีก:<br>
+          1. คำนวณความต่างความดันระหว่างใต้ปีกและเหนือปีกตามสมการแบร์นูลลี:<br>
           \\( \\Delta P = P_{\\text{bottom}} - P_{\\text{top}} = \\frac{1}{2}\\rho (v_{\\text{top}}^2 - v_{\\text{bottom}}^2) \\)<br>
-          \\( \\Delta P = \\frac{1}{2}(1.2) \\cdot (${vt.toFixed(2)}^2 - ${vb.toFixed(2)}^2) = 0.6 \\cdot (${Math.pow(vt, 2)} - ${Math.pow(vb, 2)}) = ${dp.toFixed(2)} \\text{ Pa} \\)<br>
-          2. หาแรงยกบนปีกเครื่องบิน: \\( F = \\Delta P \\cdot A \\)<br>
-          \\( F = (${dp.toFixed(2)} \\text{ Pa}) \\cdot (${area.toFixed(2)} \\text{ m}^2) = ${force_n.toFixed(2)} \\text{ N} = ${force_kn.toFixed(2)} \\text{ kN} \\)
+          \\( \\Delta P = \\frac{1}{2}(1.2) \\cdot (${vt}^2 - ${vb}^2) = 0.6 \\cdot (${Math.pow(vt, 2)} - ${Math.pow(vb, 2)}) = ${dp.toLocaleString()} \\text{ Pa} \\)<br>
+          2. หาแรงยกบนปีกเครื่องบิน (\\(F = \\Delta P \\cdot A\\)):<br>
+          \\( F = (${dp.toLocaleString()} \\text{ Pa}) \\cdot (${area} \\text{ m}^2) = ${force_n.toLocaleString()} \\text{ N} \\)<br>
+          แปลงเป็นหน่วยกิโลนิวตัน (kN):<br>
+          \\( F = \\frac{${force_n.toLocaleString()}}{1000} = ${force_kn} \\text{ kN} \\)
         `
             };
         }
@@ -1274,6 +1395,103 @@ const QUESTION_TEMPLATES = [
             answers: ['บริเวณที่ของไหลเคลื่อนที่ด้วยอัตราเร็วสูง ความดันสถิตในของไหลจะต่ำลง'],
             answersRaw: [0],
             explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_4_3_bernoulli_concept'), shuffled)
+        })
+    },
+    // 17.4.1 ของไหลอุดมคติ (คุณสมบัติ 4 ประการ)
+    {
+        id: '17_4_1_incompressible_concept', topic: '17.4.1', type: 'choice',
+        title: 'สมบัติการไม่สามารถอัดตัวได้ของของไหลอุดมคติ',
+        choices: [
+            'ปริมาตรและความหนาแน่นของของไหลมีค่าคงตัวเท่ากันทุกบริเวณ ไม่เปลี่ยนแปลงตามความดัน',
+            'ของไหลสามารถถูกบีบอัดให้มีปริมาตรลดลงได้มากเมื่อได้รับความดันสูง',
+            'ความหนาแน่นของของไหลจะแปรผันตรงกับอัตราเร็วในการเคลื่อนที่ของอนุภาค',
+            'มวลและปริมาตรของของไหลจะเปลี่ยนแปลงลดลงเมื่อไหลผ่านท่อที่มีความดันสูง'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ของไหลอุดมคติไม่สามารถอัดตัวได้ (Incompressible) ความหนาแน่นและปริมาตรจึงคงตัวตลอดการไหล' },
+            { isCorrect: false, text: 'ของไหลอุดมคติไม่สามารถถูกบีบอัดได้ ปริมาตรจึงไม่ลดลงเมื่อมีความดัน' },
+            { isCorrect: false, text: 'ความหนาแน่นคงตัวเสมอ ไม่ขึ้นกับอัตราเร็วการไหล' },
+            { isCorrect: false, text: 'มวลและปริมาตรคงตัว ไม่เปลี่ยนแปลงตามความดัน' }
+        ],
+        text: () => `สมบัติ "ไม่สามารถอัดตัวได้ (Incompressible)" ของของไหลอุดมคติตามหลักฟิสิกส์ สสวท. มีความหมายตรงกับข้อใด`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['ปริมาตรและความหนาแน่นของของไหลมีค่าคงตัวเท่ากันทุกบริเวณ ไม่เปลี่ยนแปลงตามความดัน'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_4_1_incompressible_concept'), shuffled)
+        })
+    },
+    {
+        id: '17_4_1_nonviscous_concept', topic: '17.4.1', type: 'choice',
+        title: 'สมบัติไม่มีแรงหนืดและการไหลอย่างสม่ำเสมอของของไหลอุดมคติ',
+        choices: [
+            'ไม่มีแรงเสียดทานภายในระหว่างชั้นของไหล และความเร็วของอนุภาค ณ ตำแหน่งใดตำแหน่งหนึ่งคงตัวไม่เปลี่ยนตามเวลา',
+            'มีแรงต้านทานการเคลื่อนที่ระหว่างชั้นของไหลสูงมากเพื่อป้องกันการหมุนของอนุภาค',
+            'อนุภาคของไหลจะมีความเร่งเพิ่มขึ้นเรื่อยๆ ตลอดเส้นทางการไหลในท่อแนวราบ',
+            'ความเร็วของอนุภาค ณ ตำแหน่งเดียวกันจะแกว่งขึ้นลงตามทิศทางการไหลตลอดเวลา'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ไม่มีความหนืด (Non-viscous) คือไม่มีแรงเสียดทานภายใน และไหลสม่ำเสมอ (Steady flow) คือความเร็ว ณ จุดใดๆ คงตัว' },
+            { isCorrect: false, text: 'ของไหลอุดมคติถือว่าไม่มีแรงหนืดหรือแรงต้านทานภายในเลย' },
+            { isCorrect: false, text: 'หากพื้นที่หน้าตัดคงตัว อัตราเร็วจะคงตัว ไม่มีความเร่งเพิ่มขึ้นเรื่อยๆ' },
+            { isCorrect: false, text: 'การไหลอย่างสม่ำเสมอ ความเร็ว ณ จุดเดิมต้องไม่เปลี่ยนตามเวลา' }
+        ],
+        text: () => `ข้อความใดอธิบายสมบัติ "ไม่มีแรงหนืด (Non-viscous)" และ "การไหลอย่างสม่ำเสมอ (Steady flow)" ของของไหลอุดมคติได้ถูกต้อง`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['ไม่มีแรงเสียดทานภายในระหว่างชั้นของไหล และความเร็วของอนุภาค ณ ตำแหน่งใดตำแหน่งหนึ่งคงตัวไม่เปลี่ยนตามเวลา'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_4_1_nonviscous_concept'), shuffled)
+        })
+    },
+
+    // 17.4.2 สมการความต่อเนื่อง
+    {
+        id: '17_4_2_flow_rate_const_concept', topic: '17.4.2', type: 'choice',
+        title: 'มโนทัศน์อัตราการไหลและสมการความต่อเนื่อง',
+        choices: [
+            'อัตราการไหล (Q = Av) มีค่าคงตัวเสมอทุกๆ ตำแหน่งตลอดแนวท่อ',
+            'อัตราเร็วของการไหล (v) มีค่าคงตัวเท่ากันเสมอแม้ขนาดท่อจะเปลี่ยนไป',
+            'ความดันสถิตของของไหล (P) มีค่าคงตัวเท่ากันทุกตำแหน่งในท่อที่มีขนาดต่างกัน',
+            'ผลคูณระหว่างความดันและพื้นที่หน้าตัดท่อ (P · A) จะมีค่าคงตัวเสมอ'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'ตามสมการความต่อเนื่อง A1 v1 = A2 v2 = Q = คงตัว อัตราการไหล Q จะคงตัวเสมอทุกตำแหน่ง' },
+            { isCorrect: false, text: 'อัตราเร็ว v จะเปลี่ยนไปตามขนาดพื้นที่หน้าตัดท่อ (A เล็ก v มาก, A ใหญ่ v น้อย)' },
+            { isCorrect: false, text: 'ความดันสถิต P เปลี่ยนแปลงตามอัตราเร็วและระดับความสูงตามสมการแบร์นูลลี' },
+            { isCorrect: false, text: 'ปริมาณที่คงตัวคือผลคูณ A · v (อัตราการไหล) ไม่ใช่ P · A' }
+        ],
+        text: () => `เมื่อของไหลอุดมคติไหลอย่างต่อเนื่องผ่านท่อที่มีพื้นที่หน้าตัดไม่สม่ำเสมอ ปริมาณใดต่อไปนี้มีค่าคงตัวเสมอทุกตำแหน่งในท่อ`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['อัตราการไหล (Q = Av) มีค่าคงตัวเสมอทุกๆ ตำแหน่งตลอดแนวท่อ'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_4_2_flow_rate_const_concept'), shuffled)
+        })
+    },
+
+    // 17.4.3 สมการแบร์นูลลี
+    {
+        id: '17_4_3_bernoulli_energy_concept', topic: '17.4.3', type: 'choice',
+        title: 'หลักการอนุรักษ์พลังงานในสมการแบร์นูลลี',
+        choices: [
+            'สมการแบร์นูลลีเป็นผลสืบเนื่องมาจากกฎการอนุรักษ์พลังงานสำหรับของไหลอุดมคติที่กำลังเคลื่อนที่',
+            'สมการแบร์นูลลีเป็นผลสืบเนื่องมาจากกฎการอนุรักษ์โมเมนตัมเชิงมุมของของไหล',
+            'สมการแบร์นูลลีระบุว่าพลังงานศักย์โน้มถ่วงของของไหลต้องเป็นศูนย์เสมอ',
+            'สมการแบร์นูลลีใช้ได้เฉพาะกับของไหลที่มีความหนืดสูงมากและไหลแบบปั่นป่วน'
+        ],
+        choiceExplanations: [
+            { isCorrect: true, text: 'สมการแบร์นูลลี (P + 1/2 rho v^2 + rho gh = const) มาจากทฤษฎีบทงาน-พลังงาน หรือกฎการอนุรักษ์พลังงาน' },
+            { isCorrect: false, text: 'สมการแบร์นูลลีมาจากกฎการอนุรักษ์พลังงาน ไม่ใช่โมเมนตัมเชิงมุม' },
+            { isCorrect: false, text: 'พลังงานศักย์โน้มถ่วง (rho gh) รวมอยู่ในสมการแบร์นูลลี ไม่ได้เป็นศูนย์เสมอ' },
+            { isCorrect: false, text: 'สมการแบร์นูลลีใช้กับของไหลอุดมคติ (ไม่มีแรงหนืดและไหลสม่ำเสมอ ไม่ปั่นป่วน)' }
+        ],
+        text: () => `สมการแบร์นูลลี (Bernoulli's Equation) ในทางฟิสิกส์เป็นผลสืบเนื่องมาจากหลักการพื้นฐานข้อใด`,
+        generate: (seed) => ({
+            params: {},
+            answers: ['สมการแบร์นูลลีเป็นผลสืบเนื่องมาจากกฎการอนุรักษ์พลังงานสำหรับของไหลอุดมคติที่กำลังเคลื่อนที่'],
+            answersRaw: [0],
+            explanation: (shuffled) => formatChoiceExplanation(QUESTION_TEMPLATES.find(q => q.id === '17_4_3_bernoulli_energy_concept'), shuffled)
         })
     }
 ];
@@ -1408,16 +1626,28 @@ function startExamProcess() {
     const name = document.getElementById('exam-student-name').value.trim();
     const cls = document.getElementById('exam-student-class').value;
     const num = document.getElementById('exam-student-no').value.trim();
-    const R_parsed = parseInt(num);
+    const R_parsed = parseInt(num, 10);
     if (!name || !cls || isNaN(R_parsed) || R_parsed < 1 || R_parsed > 40) {
         triggerAlert("ข้อมูลไม่ครบถ้วน", "กรุณาระบุ ชื่อ ชั้นเรียน และเลขที่ (1-40) ให้ถูกต้องก่อนเริ่มสอบครับ", "fa-user", "bg-cyan-100 text-cyan-600");
         return;
     }
 
+    // Increment attempt counter for this student
+    const attemptKey = `exam_attempt_${cls}_${num}`;
+    let attemptCount = 0;
+    try {
+        attemptCount = parseInt(localStorage.getItem(attemptKey), 10) || 0;
+    } catch (e) { }
+    attemptCount += 1;
+    try {
+        localStorage.setItem(attemptKey, attemptCount.toString());
+    } catch (e) { }
+
     const timestamp = Date.now();
-    examSeed = `${num}_${timestamp}`;
+    examSeed = `${num}_${timestamp}_att${attemptCount}`;
     examDurationSeconds = 15 * 60;
-    examStudentInfo = { name, class: cls, number: num, seed: examSeed };
+    examStudentInfo = { name, class: cls, number: num, seed: examSeed, attempt: attemptCount };
+    examCheatStats = { tabSwitches: 0, refreshes: 0 };
 
     // Select 4 numeric calculation questions + 1 choice question
     const numericQs = QUESTION_TEMPLATES.filter(q => q.type !== 'choice');
@@ -1425,13 +1655,33 @@ function startExamProcess() {
 
     let selectedTemplates = [];
     selectedTemplates.push(...pureShuffle(numericQs).slice(0, 4));
+
+    // Choice question with history check to avoid repeating theory questions
     if (choiceQs.length > 0) {
-        selectedTemplates.push(pureShuffle(choiceQs)[0]);
+        const choiceHistKey = `exam_choice_history_${cls}_${num}`;
+        let choiceHistory = [];
+        try {
+            const rawHist = localStorage.getItem(choiceHistKey);
+            if (rawHist) choiceHistory = JSON.parse(rawHist);
+        } catch (e) { }
+
+        let availableChoiceQs = choiceQs.filter(q => !choiceHistory.includes(q.id));
+        if (availableChoiceQs.length === 0) {
+            choiceHistory = [];
+            availableChoiceQs = choiceQs;
+        }
+        const selectedChoiceTemplate = pureShuffle(availableChoiceQs)[0];
+        choiceHistory.push(selectedChoiceTemplate.id);
+        try {
+            localStorage.setItem(choiceHistKey, JSON.stringify(choiceHistory));
+        } catch (e) { }
+
+        selectedTemplates.push(selectedChoiceTemplate);
     }
     selectedTemplates = pureShuffle(selectedTemplates);
 
     currentExamQuestions = selectedTemplates.map((template) => {
-        let instance = template.generate(`${num}_${timestamp}_${template.id}`);
+        let instance = template.generate(`${num}_${timestamp}_att${attemptCount}_${template.id}`);
         const choices = template.type === 'choice' ? pureShuffle(template.choices) : [];
         const explanationText = template.type === 'choice'
             ? formatChoiceExplanation(template, choices)
@@ -1445,7 +1695,7 @@ function startExamProcess() {
         };
     });
 
-    document.getElementById('lbl-exam-user-info').innerHTML = `${name} (ม.6/${cls} เลขที่ ${num})`;
+    document.getElementById('lbl-exam-user-info').innerHTML = `${name} (ม.6/${cls} เลขที่ ${num}) - สอบครั้งที่ ${attemptCount}`;
 
     renderExamLiveDOM();
 
@@ -1455,9 +1705,18 @@ function startExamProcess() {
     examIsActive = true;
     examSubmissionInProgress = false;
 
-    sessionStorage.setItem(EXAM_STATE_KEY, JSON.stringify({
-        examQuestions: currentExamQuestions, studentInfo: examStudentInfo, examStartTimestamp, examDeadlineTimestamp, examDurationSeconds
-    }));
+    // Save initial state to localStorage
+    try {
+        localStorage.setItem(EXAM_STATE_KEY, JSON.stringify({
+            examQuestions: currentExamQuestions,
+            studentInfo: examStudentInfo,
+            examStartTimestamp,
+            examDeadlineTimestamp,
+            examDurationSeconds,
+            cheatStats: examCheatStats,
+            answers: []
+        }));
+    } catch (e) { }
 
     setupExamLocks();
     showSection('exam-live');
@@ -1484,15 +1743,16 @@ function renderExamLiveDOM() {
         if (q.type === 'choice') {
             inputHTML += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">`;
             q.choices.forEach((c) => {
+                const escaped = c.replace(/"/g, '&quot;');
                 inputHTML += `<label class="flex items-center gap-3 bg-slate-50 border border-slate-200 hover:bg-slate-100 p-4 rounded-xl cursor-pointer transition">
-              <input type="radio" name="exam-q${idx}" value="${c}" class="w-4 h-4 text-cyan-600 focus:ring-cyan-500">
+              <input type="radio" name="exam-q${idx}" value="${escaped}" onchange="debouncedSaveExamState()" class="w-4 h-4 text-cyan-600 focus:ring-cyan-500">
               <span class="text-sm text-slate-800">${c}</span>
             </label>`;
             });
             inputHTML += `</div>`;
         } else {
             inputHTML += `<div class="mt-4"><label class="block text-xs font-bold text-slate-500 mb-1">${q.inputs[0].label}</label>
-            <input type="text" id="exam-q${idx}-val1" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-500 outline-none font-mono text-sm"></div>`;
+            <input type="text" id="exam-q${idx}-val1" oninput="debouncedSaveExamState()" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-500 outline-none font-mono text-sm"></div>`;
         }
         container.innerHTML += `<div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
@@ -1598,11 +1858,18 @@ function submitExam(timeExpired = false) {
     const timeStr = `${Math.floor(elapsed / 60)} นาที ${elapsed % 60} วินาที`;
 
     const payload = {
-        score: total_score, timeTaken: timeStr, studentInfo: examStudentInfo,
-        gradedResults, examQuestions: currentExamQuestions, date: new Date().toLocaleDateString('th-TH')
+        score: total_score,
+        timeTaken: timeStr,
+        studentInfo: examStudentInfo,
+        gradedResults,
+        examQuestions: currentExamQuestions,
+        date: new Date().toLocaleDateString('th-TH'),
+        cheatStats: { ...examCheatStats }
     };
-    localStorage.setItem('last_exam_results_17_4', JSON.stringify(payload));
-    sessionStorage.removeItem(EXAM_STATE_KEY);
+    try {
+        localStorage.setItem('last_exam_results_17_4', JSON.stringify(payload));
+        localStorage.removeItem(EXAM_STATE_KEY);
+    } catch (e) { }
 
     updateLatestScore();
     showSection('exam-result');
@@ -1611,13 +1878,30 @@ function submitExam(timeExpired = false) {
 
 function renderExamResults(data) {
     document.getElementById('lbl-res-student-name').innerText = data.studentInfo.name;
-    document.getElementById('lbl-res-student-meta').innerHTML = `(ม.6/${data.studentInfo.class} เลขที่ ${data.studentInfo.number})`;
+    const attStr = data.studentInfo.attempt ? ` • สอบครั้งที่ ${data.studentInfo.attempt}` : '';
+    document.getElementById('lbl-res-student-meta').innerHTML = `(ม.6/${data.studentInfo.class} เลขที่ ${data.studentInfo.number}${attStr})`;
     document.getElementById('lbl-res-time-elapsed').innerText = data.timeTaken;
     document.getElementById('lbl-res-finished-at').innerText = data.date;
 
     document.getElementById('lbl-res-total-score').innerText = data.score;
     const circle = document.getElementById('res-circle-progress');
     if (circle) circle.style.strokeDashoffset = 439.8 - (data.score / 10) * 439.8;
+
+    // Display / Hide Cheat & Caution Summary Card
+    const cheatCard = document.getElementById('exam-cheat-summary-card');
+    const lblSwitches = document.getElementById('lbl-res-tab-switches');
+    const lblRefreshes = document.getElementById('lbl-res-refreshes');
+    const stats = data.cheatStats || { tabSwitches: 0, refreshes: 0 };
+
+    if (cheatCard && lblSwitches && lblRefreshes) {
+        if (stats.tabSwitches > 0 || stats.refreshes > 0) {
+            lblSwitches.innerText = `${stats.tabSwitches} ครั้ง`;
+            lblRefreshes.innerText = `${stats.refreshes} ครั้ง`;
+            cheatCard.classList.remove('hidden');
+        } else {
+            cheatCard.classList.add('hidden');
+        }
+    }
 
     const fb = document.getElementById('lbl-res-badge-feedback');
     if (data.score >= 8) fb.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-star"></i> ยอดเยี่ยม! คุณเข้าใจสมการแบร์นูลลีและการคำนวณอัตราการไหลได้อย่างดีเยี่ยม</span>`;
@@ -1701,26 +1985,59 @@ window.onload = () => {
     switchReviewTab('17-4-continuity');
     queueTypeset(document.body);
 
-    const activeSession = sessionStorage.getItem(EXAM_STATE_KEY);
-    if (activeSession) {
-        try {
+    // Check saved exam session in localStorage for Auto-Resume on Refresh
+    try {
+        const activeSession = localStorage.getItem(EXAM_STATE_KEY);
+        if (activeSession) {
             const s = JSON.parse(activeSession);
-            if (s.examDeadlineTimestamp > Date.now()) {
+            if (s && s.examDeadlineTimestamp > Date.now()) {
+                // Count refresh
+                s.cheatStats = s.cheatStats || { tabSwitches: 0, refreshes: 0 };
+                s.cheatStats.refreshes = (s.cheatStats.refreshes || 0) + 1;
+                examCheatStats = s.cheatStats;
+
                 currentExamQuestions = s.examQuestions;
                 examStudentInfo = s.studentInfo;
                 examSeed = s.studentInfo.seed || null;
+                examStartTimestamp = s.examStartTimestamp;
                 examDeadlineTimestamp = s.examDeadlineTimestamp;
                 examDurationSeconds = s.examDurationSeconds;
                 examIsActive = true;
-                document.getElementById('lbl-exam-user-info').innerHTML = `${s.studentInfo.name} (ม.6/${s.studentInfo.class} เลขที่ ${s.studentInfo.number})`;
+                examSubmissionInProgress = false;
+
+                // Update localStorage with updated refresh count
+                localStorage.setItem(EXAM_STATE_KEY, JSON.stringify(s));
+
+                const attStr = s.studentInfo.attempt ? ` - สอบครั้งที่ ${s.studentInfo.attempt}` : '';
+                document.getElementById('lbl-exam-user-info').innerHTML = `${s.studentInfo.name} (ม.6/${s.studentInfo.class} เลขที่ ${s.studentInfo.number})${attStr}`;
+
                 renderExamLiveDOM();
+
+                // Restore user answers
+                if (Array.isArray(s.answers)) {
+                    s.answers.forEach((ans, idx) => {
+                        if (!ans) return;
+                        const q = currentExamQuestions[idx];
+                        if (q.type === 'choice') {
+                            const radio = document.querySelector(`input[name="exam-q${idx}"][value="${CSS.escape(ans)}"]`);
+                            if (radio) radio.checked = true;
+                        } else if (Array.isArray(ans) && ans[0]) {
+                            const input = document.getElementById(`exam-q${idx}-val1`);
+                            if (input) input.value = ans[0];
+                        }
+                    });
+                }
+
                 setupExamLocks();
                 showSection('exam-live');
                 startExamTimer();
             } else {
-                sessionStorage.removeItem(EXAM_STATE_KEY);
+                localStorage.removeItem(EXAM_STATE_KEY);
             }
-        } catch (e) { sessionStorage.removeItem(EXAM_STATE_KEY); }
+        }
+    } catch (e) {
+        console.error("Failed to restore exam session:", e);
+        try { localStorage.removeItem(EXAM_STATE_KEY); } catch (err) { }
     }
 
     const totalQuestions = QUESTION_TEMPLATES.length;
